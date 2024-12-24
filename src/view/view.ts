@@ -1,19 +1,26 @@
 import type { Thing } from "../thing/thing";
-import { Point } from "../geom/point";
 import type { Tile } from "../map/tile";
+import { Composite, Engine, Vector } from "matter-js";
+import type { Trail } from "../thing/trail";
 
 export class View {
-    offset: Point;
+    engine: Engine;
 
     mapLayer: HTMLElement;
     floorLayer: HTMLElement;
     thingLayer: HTMLElement;
 
     tiles: Tile[] = [];
-    floors: Thing[] = [];
+    floors: Trail[] = [];
     things: Thing[] = [];
+    player: Thing;
 
     constructor() {
+        this.engine = Engine.create({
+            gravity: {
+                scale: 0,
+            }
+        });
         this.mapLayer = document.createElement('div');
         this.mapLayer.classList.add('viewlayer');
         this.mapLayer.classList.add('maplayer');
@@ -28,18 +35,13 @@ export class View {
         document.body.appendChild(this.thingLayer);
     }
 
-    prep(center: Point) {
-        const { clientWidth, clientHeight } = document.body;
-        const windowSize = new Point(clientWidth, clientHeight);
-        this.offset = center.subtract(windowSize.multiply(0.5));
-    }
-
     addTile(tile: Tile) {
         this.mapLayer.appendChild(tile.elem);
         this.tiles.push(tile);
+        Composite.add(this.engine.world, tile.bodies);
     }
 
-    addFloor(floor: Thing) {
+    addFloor(floor: Trail) {
         this.floorLayer.appendChild(floor.elem);
         this.floors.push(floor);
     }
@@ -47,23 +49,29 @@ export class View {
     addThing(thing: Thing) {
         this.thingLayer.appendChild(thing.elem);
         this.things.push(thing);
+        Composite.add(this.engine.world, thing.body);
     }
 
     draw() {
-        for (const tile of this.tiles) {
-            this._draw(tile);
-        }
-        for (const floor of this.floors) {
-            this._draw(floor);
-        }
-        for (const thing of this.things) {
-            this._draw(thing);
-        }
     }
 
-    private _draw(thing: Thing) {
-        const offset = thing.location.subtract(thing.elemOffset).subtract(this.offset);
-        thing.draw(offset);
+    tick(sec: number) {
+        for (const thing of this.things) {
+            thing.tick(sec);
+        }
+        Engine.update(this.engine, sec * 1000);
+        const { clientWidth, clientHeight } = document.body;
+        const windowSize = Vector.create(clientWidth, clientHeight);
+        const offset = Vector.sub(this.player.body.position, Vector.mult(windowSize, 0.5));
+        for (const tile of this.tiles) {
+            tile.draw(offset);
+        }
+        for (const floor of this.floors) {
+            floor.draw(offset);
+        }
+        for (const thing of this.things) {
+            thing.draw(offset);
+        }
     }
 
 }

@@ -1,27 +1,43 @@
-import { Point } from "../geom/point";
-import { Thing } from "../thing/thing";
+import './tile.scss';
 import type { View } from '../view/view';
 import { SVG_NS } from '../util/html';
+import { Body, Vector } from "matter-js";
 
 export const TILE_SIZE = 800;
 
-export class Tile extends Thing {
+export class Tile {
+    readonly view: View;
+    readonly bodies: Body[];
+    readonly offset: Vector;
+    readonly elem: HTMLElement | SVGElement;
 
-    constructor(view: View, elem: SVGElement, offset: Point) {
-        super(view, elem, Point.ORIGIN, offset.multiply(TILE_SIZE));
+    constructor(view: View, bodies: Body[], elem: SVGElement, offset: Vector) {
+        this.view = view;
+        this.bodies = bodies;
+        this.elem = elem;
+        this.offset = Vector.mult(offset, TILE_SIZE);
+
+        this.elem.classList.add('tile');
         view.addTile(this);
+    }
+    
+    draw(offset: Vector) {
+        const at = Vector.sub(this.offset, offset);
+        this.elem.style.setProperty('left', at.x + 'px');
+        this.elem.style.setProperty('top', at.y + 'px');
     }
 }
 
-export function basicTile(exits: string) {
+export function basicTile(view: View, exits: string, offset: Vector): Tile {
     const n = exits.includes('n');
     const e = exits.includes('e');
     const s = exits.includes('s');
     const w = exits.includes('w');
-    const svg = document.createElementNS(SVG_NS, 'svg');
+
+    const elem = document.createElementNS(SVG_NS, 'svg');
     const size = TILE_SIZE;
-    svg.style.setProperty('width', `${size}px`);
-    svg.style.setProperty('height', `${size}px`);
+    elem.style.setProperty('width', `${size}px`);
+    elem.style.setProperty('height', `${size}px`);
     const path = document.createElementNS(SVG_NS, 'path');
     const trackWidth = size * 0.5;
     const fromEdge = (size - trackWidth) / 2;
@@ -47,6 +63,8 @@ export function basicTile(exits: string) {
     path.setAttribute('d', pathStr);
     path.setAttribute('fill', 'rgb(97, 62, 34)');
     path.setAttribute('stroke', 'none');
-    svg.appendChild(path);
-    return svg;
+    elem.appendChild(path);
+
+    const bodies: Body[] = [];
+    return new Tile(view, bodies, elem, offset);
 }

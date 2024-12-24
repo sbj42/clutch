@@ -1,11 +1,11 @@
-import type { Point } from "../geom/point";
+import type { Vector } from "matter-js";
 
 export class Image {
     readonly url: URL;
-    readonly size: Point;
-    readonly offset: Point;
+    readonly size: Vector;
+    readonly offset: Vector;
 
-    constructor(url: URL, size: Point, offset: Point) {
+    constructor(url: URL, size: Vector, offset: Vector) {
         this.url = url;
         this.size = size;
         this.offset = offset;

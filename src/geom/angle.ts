@@ -1,7 +1,7 @@
 export function fixAngle(value: number) {
-    return value - Math.floor(value / 360) * 360;
+    return value - Math.floor(value / (2 * Math.PI)) * (2 * Math.PI);
 }
 
 export function fixTurn(value: number) {
-    return fixAngle(value + 180) - 180;
+    return fixAngle(value + Math.PI) - Math.PI;
 }
