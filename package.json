@@ -8,7 +8,6 @@
     "start": "del /S /Q .parcel-cache && parcel"
   },
   "devDependencies": {
-    "@parcel/transformer-sass": "^2.13.3",
     "@types/matter-js": "^0.19.8",
     "matter-js": "^0.20.0",
     "parcel": "^2.13.3",

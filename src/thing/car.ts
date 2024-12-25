@@ -4,6 +4,7 @@ import { ImageSet } from '../view/image-set';
 import type { View } from "../view/view";
 import { Thing } from './thing';
 import { Trail } from "./trail";
+import { Cloud } from "./cloud";
 
 const SIZE = Vector.create(64, 32);
 
@@ -24,6 +25,9 @@ export class Car extends Thing {
     private _desiredAngle: number | undefined;
     private _desiredSpeed: number | undefined;
 
+    lap = 1;
+    nextCheckpoint = 0;
+
     trailFrontLeft?: Trail;
     trailFrontRight?: Trail;
     trailBackLeft?: Trail;
@@ -31,28 +35,42 @@ export class Car extends Thing {
 
     private constructor(view: View, body: Body, index: number) {
         super(view, body, IMAGESET.getImage(index).makeElement(), Vector.mult(SIZE, 0.5));
+        this._desiredAngle = undefined;
+        this._desiredSpeed = 0;
         this.elem.classList.add('car');
         view.addThing(this);
     }
 
     static create(view: View, index: number, position: Vector) {
-        const body = Bodies.rectangle(position.x - SIZE.x / 2, position.y - SIZE.y / 2, SIZE.x, SIZE.y);
+        const body = Bodies.rectangle(position.x, position.y, SIZE.x - 4, SIZE.y - 4, {
+            friction: 1,
+            restitution: 0.8,
+        });
         return new Car(view, body, index);
     }
 
-    go(direction: Vector) {
+    go(direction?: Vector) {
+        if (!direction) {
+            this._desiredAngle = undefined;
+            this._desiredSpeed = undefined;
+            return;
+        }
         const mag = Vector.magnitude(direction);
         if (mag > 0.01) {
             this._desiredAngle = Vector.angle(Vector.create(0, 0), direction);
+            this._desiredSpeed = mag;
         } else {
             this._desiredAngle = undefined;
+            this._desiredSpeed = 0;
         }
-        this._desiredSpeed = mag;
     }
 
     tick(sec: number) {
         let targetAngle = this._desiredAngle;
         let trails = 0;
+        if (this.body.angularSpeed > 0) {
+            Body.setAngularSpeed(this.body, Math.max(0, this.body.angularSpeed - 0.025 * sec));
+        }
         if (targetAngle !== undefined) {
             const angleDiff = fixTurn(targetAngle - this.body.angle);
             if (targetAngle > this.body.angle + Math.PI) {
@@ -67,7 +85,7 @@ export class Car extends Thing {
                 Body.setAngle(this.body, fixAngle(this.body.angle + Math.sign(targetAngle - this.body.angle) * turnSpeed));
             }
         }
-        let { _desiredSpeed: desiredSpeed } = this;
+        let desiredSpeed = this._desiredSpeed;
         if (desiredSpeed !== undefined) {
             const speedDiff = desiredSpeed - this.body.speed / MAX_SPEED;
             if (speedDiff > TRAIL_SPEED_DIFF) {
@@ -88,23 +106,32 @@ export class Car extends Thing {
         if (Math.abs(sideways) > TRAIL_ANGLE_DIFF && this.body.speed > TRAIL_ANGLE_SPEED * MAX_SPEED) {
             trails = 4;
         }
+        const backCenter = Vector.add(this.body.position, Vector.rotate(Vector.create(-SIZE.x * 0.4, 0), this.body.angle));
+        if (Math.random() < 0.08 + 0.1 * trails) {
+            const back = Vector.mult(Vector.rotate(Vector.create(-1, 0), this.body.angle), MAX_SPEED / 5);
+            new Cloud(this.view, backCenter, Vector.add(this.body.velocity, back));
+        }
         if (trails >= 2) {
+            const backLeftTire = Vector.add(this.body.position, Vector.rotate(Vector.create(-SIZE.x * 0.4, -SIZE.y * 0.35), this.body.angle));
             this.trailBackLeft ??= new Trail(this.view, 3, 'black');
             this.trailBackLeft.elem.style.setProperty('opacity', '0.25');
-            this.trailBackLeft.add(Vector.add(this.body.position, Vector.rotate(Vector.create(-SIZE.x * 0.4, -SIZE.y * 0.35), this.body.angle)));
+            this.trailBackLeft.add(backLeftTire);
+            const backRightTire = Vector.add(this.body.position, Vector.rotate(Vector.create(-SIZE.x * 0.4, SIZE.y * 0.35), this.body.angle));
             this.trailBackRight ??= new Trail(this.view, 3, 'black');
             this.trailBackRight.elem.style.setProperty('opacity', '0.25');
-            this.trailBackRight.add(Vector.add(this.body.position, Vector.rotate(Vector.create(-SIZE.x * 0.4, SIZE.y * 0.35), this.body.angle)));
+            this.trailBackRight.add(backRightTire);
         } else {
             this.trailBackLeft = this.trailBackRight = undefined;
         }
         if (trails >= 4) {
+            const frontLeftTire = Vector.add(this.body.position, Vector.rotate(Vector.create(SIZE.x * 0.4, -SIZE.y * 0.35), this.body.angle));
             this.trailFrontLeft ??= new Trail(this.view, 3, 'black');
             this.trailFrontLeft.elem.style.setProperty('opacity', '0.25');
-            this.trailFrontLeft.add(Vector.add(this.body.position, Vector.rotate(Vector.create(SIZE.x * 0.4, -SIZE.y * 0.35), this.body.angle)));
+            this.trailFrontLeft.add(frontLeftTire);
+            const frontRightTire = Vector.add(this.body.position, Vector.rotate(Vector.create(SIZE.x * 0.4, SIZE.y * 0.35), this.body.angle));
             this.trailFrontRight ??= new Trail(this.view, 3, 'black');
             this.trailFrontRight.elem.style.setProperty('opacity', '0.25');
-            this.trailFrontRight.add(Vector.add(this.body.position, Vector.rotate(Vector.create(SIZE.x * 0.4, SIZE.y * 0.35), this.body.angle)));
+            this.trailFrontRight.add(frontRightTire);
         } else {
             this.trailFrontLeft = this.trailFrontRight = undefined;
         }

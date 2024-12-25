@@ -1,4 +1,3 @@
-import './trail.scss';
 import { Vector } from "matter-js";
 import { SVG_NS } from "../util/html";
 import type { View } from "../view/view";
@@ -16,6 +15,9 @@ export class Trail {
     constructor(view: View, width: number, stroke: string) {
         this.view = view;
         this.elem = document.createElementNS(SVG_NS, 'svg');
+        this.elem.style.setProperty('position', 'absolute');
+        this.elem.style.setProperty('left', `${-this._width}px`);
+        this.elem.style.setProperty('top', `${-this._width}px`);
         this.elem.classList.add('trail');
         this._width = width;
         this._path = document.createElementNS(SVG_NS, 'polyline');
@@ -32,9 +34,7 @@ export class Trail {
         this._changed = true;
     }
 
-    draw(offset: Vector) {
-        this.elem.style.setProperty('left', (-this._width - offset.x) + 'px');
-        this.elem.style.setProperty('top', (-this._width - offset.y) + 'px');
+    draw() {
         if (!this._changed) {
             return;
         }

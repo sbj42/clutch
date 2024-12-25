@@ -4,38 +4,50 @@ import { View } from "./view/view";
 import pressed from 'pressed';
 import { TILE_SIZE } from "./map/tile";
 import { Vector } from "matter-js";
+import { Ai } from "./ai/ai";
 
-const view = new View();
+const top = document.getElementById('top')!;
+const view = new View(top);
 const map = new Map(view, Vector.create(3, 3));
 const player = Car.create(view, 0, Vector.create(TILE_SIZE / 2, TILE_SIZE / 2));
 view.player = player;
 
+const overlay = document.createElement('div');
+overlay.style.setProperty('position', 'absolute');
+overlay.style.setProperty('inset', '0');
+overlay.style.setProperty('display', 'flex');
+overlay.style.setProperty('align-items', 'center');
+overlay.style.setProperty('justify-content', 'center');
+top.appendChild(overlay);
+const countdownDiv = document.createElement('div');
+countdownDiv.style.setProperty('font-size', '200px');
+countdownDiv.style.setProperty('font-family', 'monospace');
+countdownDiv.style.setProperty('color', 'white');
+overlay.appendChild(countdownDiv);
+
+let countdown = 3;
+
+const other1 = Car.create(view, 1, Vector.create(TILE_SIZE / 2, TILE_SIZE / 2 - 128));
+const ai1 = new Ai(other1, 0.7);
+const other2 = Car.create(view, 2, Vector.create(TILE_SIZE / 2, TILE_SIZE / 2 - 64));
+const ai2 = new Ai(other2, 0.8);
+const other3 = Car.create(view, 3, Vector.create(TILE_SIZE / 2, TILE_SIZE / 2 + 64));
+const ai3 = new Ai(other3, 0.9);
+const other4 = Car.create(view, 4, Vector.create(TILE_SIZE / 2, TILE_SIZE / 2 + 128));
+const ai4 = new Ai(other4, 1.0);
+
 pressed.start();
 
-const NORTH = Vector.create(0, -1);
-const dirkeys = {
-    'Up': NORTH,
-    'Right': Vector.rotate(NORTH, 1 * Math.PI / 2),
-    'Down': Vector.rotate(NORTH, 2 * Math.PI / 2),
-    'Left': Vector.rotate(NORTH, 3 * Math.PI / 2),
-    'W': NORTH,
-    'D': Vector.rotate(NORTH, 1 * Math.PI / 2),
-    'S': Vector.rotate(NORTH, 2 * Math.PI / 2),
-    'A': Vector.rotate(NORTH, 3 * Math.PI / 2),
-};
-function getInputDirection() {
-    let offset = Vector.create(0, 0);
-    const shift = pressed('Shift');
-    for (const key in dirkeys) {
-        if (pressed(key)) {
-            offset = Vector.add(offset, dirkeys[key]);
+function tick(sec: number) {
+    if (!view.active) {
+        countdown -= sec;
+        if (countdown > 0) {
+            countdownDiv.innerHTML = String(Math.ceil(countdown));
+        } else {
+            countdownDiv.innerHTML = '';
+            view.active = true;
         }
     }
-    return Vector.mult(offset, Math.min(1, 1 / Vector.magnitude(offset)) * (shift ? 0.5 : 1));
-}
-
-function tick(sec: number) {
-    player.go(getInputDirection());
     view.tick(sec);
 }
 

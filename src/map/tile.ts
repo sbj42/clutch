@@ -1,38 +1,45 @@
-import './tile.scss';
 import type { View } from '../view/view';
 import { SVG_NS } from '../util/html';
-import { Body, Vector } from "matter-js";
+import { Bodies, Body, Vector } from "matter-js";
+import { Direction, type Directions } from '../geom/direction';
 
 export const TILE_SIZE = 800;
 
 export class Tile {
     readonly view: View;
     readonly bodies: Body[];
+    readonly exits: Directions;
+    readonly elem: SVGElement;
     readonly offset: Vector;
-    readonly elem: HTMLElement | SVGElement;
+    readonly trackWidth: number;
 
-    constructor(view: View, bodies: Body[], elem: SVGElement, offset: Vector) {
+    constructor(view: View, bodies: Body[], elem: SVGElement, offset: Vector, trackWidth: number, exits: Directions) {
         this.view = view;
         this.bodies = bodies;
         this.elem = elem;
-        this.offset = Vector.mult(offset, TILE_SIZE);
+        this.offset = offset;
+        this.trackWidth = trackWidth;
+        this.exits = exits;
 
+        // this.elem.style.setProperty('border', '1px solid green');
+        this.elem.style.setProperty('position', 'absolute');
+        this.elem.style.setProperty('left', offset.x + 'px');
+        this.elem.style.setProperty('top', offset.y + 'px');
         this.elem.classList.add('tile');
         view.addTile(this);
     }
     
-    draw(offset: Vector) {
-        const at = Vector.sub(this.offset, offset);
-        this.elem.style.setProperty('left', at.x + 'px');
-        this.elem.style.setProperty('top', at.y + 'px');
+    draw() {
     }
 }
 
-export function basicTile(view: View, exits: string, offset: Vector): Tile {
-    const n = exits.includes('n');
-    const e = exits.includes('e');
-    const s = exits.includes('s');
-    const w = exits.includes('w');
+export function basicTile(view: View, exits: Directions, offset: Vector): Tile {
+    const n = exits[Direction.NORTH];
+    const e = exits[Direction.EAST];
+    const s = exits[Direction.SOUTH];
+    const w = exits[Direction.WEST];
+    offset = Vector.mult(offset, TILE_SIZE);
+    const bodies: Body[] = [];
 
     const elem = document.createElementNS(SVG_NS, 'svg');
     const size = TILE_SIZE;
@@ -65,6 +72,90 @@ export function basicTile(view: View, exits: string, offset: Vector): Tile {
     path.setAttribute('stroke', 'none');
     elem.appendChild(path);
 
-    const bodies: Body[] = [];
-    return new Tile(view, bodies, elem, offset);
+    if (!n) {
+        bodies.push(Bodies.rectangle(offset.x + size / 2, offset.y + fromEdge / 2, size, fromEdge, {
+            isStatic: true,
+        }));
+    } else {
+        if (w) {
+            bodies.push(Bodies.rectangle(offset.x + fromEdge / 2, offset.y + (fromEdge - radius) / 2, fromEdge, fromEdge - radius, {
+                isStatic: true,
+            }));
+        }
+        if (e) {
+            bodies.push(Bodies.rectangle(offset.x + size - fromEdge / 2, offset.y + (fromEdge - radius) / 2, fromEdge, fromEdge - radius, {
+                isStatic: true,
+            }));
+        }
+    }
+    if (!s) {
+        bodies.push(Bodies.rectangle(offset.x + size / 2, offset.y + size - fromEdge / 2, size, fromEdge, {
+            isStatic: true,
+        }));
+    } else {
+        if (w) {
+            bodies.push(Bodies.rectangle(offset.x + fromEdge / 2, offset.y + size - (fromEdge - radius) / 2, fromEdge, fromEdge - radius, {
+                isStatic: true,
+            }));
+        }
+        if (e) {
+            bodies.push(Bodies.rectangle(offset.x + size - fromEdge / 2, offset.y + size - (fromEdge - radius) / 2, fromEdge, fromEdge - radius, {
+                isStatic: true,
+            }));
+        }
+    }
+    if (!w) {
+        bodies.push(Bodies.rectangle(offset.x + fromEdge / 2, offset.y + size / 2, fromEdge, size, {
+            isStatic: true,
+        }));
+    } else {
+        if (n) {
+            bodies.push(Bodies.rectangle(offset.x + (fromEdge - radius)  / 2, offset.y + fromEdge / 2, fromEdge - radius, fromEdge, {
+                isStatic: true,
+            }));
+        }
+        if (s) {
+            bodies.push(Bodies.rectangle(offset.x + (fromEdge - radius)  / 2, offset.y + size - fromEdge / 2, fromEdge - radius, fromEdge, {
+                isStatic: true,
+            }));
+        }
+    }
+    if (!e) {
+        bodies.push(Bodies.rectangle(offset.x + size - fromEdge / 2, offset.y + size / 2, fromEdge, size, {
+            isStatic: true,
+        }));
+    } else {
+        if (n) {
+            bodies.push(Bodies.rectangle(offset.x + size - (fromEdge - radius)  / 2, offset.y + fromEdge / 2, fromEdge - radius, fromEdge, {
+                isStatic: true,
+            }));
+        }
+        if (s) {
+            bodies.push(Bodies.rectangle(offset.x + size - (fromEdge - radius)  / 2, offset.y + size - fromEdge / 2, fromEdge - radius, fromEdge, {
+                isStatic: true,
+            }));
+        }
+    }
+    if (n && w) {
+        bodies.push(Bodies.circle(offset.x + fromEdge - radius, offset.y + fromEdge - radius, radius, {
+            isStatic: true,
+        }));
+    }
+    if (n && e) {
+        bodies.push(Bodies.circle(offset.x + size - (fromEdge - radius), offset.y + fromEdge - radius, radius, {
+            isStatic: true,
+        }));
+    }
+    if (s && e) {
+        bodies.push(Bodies.circle(offset.x + size - (fromEdge - radius), offset.y + size - (fromEdge - radius), radius, {
+            isStatic: true,
+        }));
+    }
+    if (s && w) {
+        bodies.push(Bodies.circle(offset.x + fromEdge - radius, offset.y + size - (fromEdge - radius), radius, {
+            isStatic: true,
+        }));
+    }
+
+    return new Tile(view, bodies, elem, offset, trackWidth, exits);
 }
