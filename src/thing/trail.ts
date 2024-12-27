@@ -29,9 +29,15 @@ export class Trail {
     }
 
     add(point: Vector) {
+        if (this._points.length && Vector.magnitude(Vector.sub(point, this._points[this._points.length - 1])) < 10) {
+            return;
+        }
         this._points.push(point);
         this._max = Vector.create(Math.max(this._max.x, point.x), Math.max(this._max.y, point.y));
         this._changed = true;
+    }
+
+    tick(sec: number) {
     }
 
     draw() {

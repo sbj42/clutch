@@ -28,6 +28,7 @@ export class View {
 
     ais: Ai[] = [];
     player: Car;
+    finished = 0;
     active = false;
 
     constructor(top: HTMLElement) {
@@ -108,6 +109,9 @@ export class View {
                 car.go(undefined);
             }
         }
+        for (const floor of this.floors) {
+            floor.tick(sec);
+        }
         this.clouds = this.clouds.filter(cloud => {
             const keep = cloud.tick(sec);
             if (!keep) {
@@ -123,14 +127,18 @@ export class View {
                     if (car.nextCheckpoint >= this.checkpoints.length) {
                         car.nextCheckpoint = 0;
                         car.lap ++;
+                        if (car.lap > this.map.laps) {
+                            car.place = ++ this.finished;
+                        }
                     }
                 }
             }
-            checkpoint.setState(this.player.nextCheckpoint === i ? 'next'
+            checkpoint.setState(this.player.place ? 'inactive'
+                : this.player.nextCheckpoint === i ? 'next'
                 : this.player.nextCheckpoint === ((i + 1) % this.checkpoints.length) ? 'last'
                 : 'inactive');
         }
-        Engine.update(this.engine, Math.min(16.667, sec * 1000));
+        Engine.update(this.engine, Math.min(16.666, sec * 1000));
         const { innerWidth, innerHeight } = window;
         const windowSize = Vector.create(innerWidth, innerHeight);
         const offset = Vector.sub(this.player.body.position, Vector.mult(windowSize, 0.5));

@@ -5,6 +5,7 @@ import type { View } from "../view/view";
 import { Thing } from './thing';
 import { Trail } from "./trail";
 import { Cloud } from "./cloud";
+import { ACCELERATION, COLLISION_INSET, MAX_SPEED, SKID_ANGLE_DIFF, SKID_ANGLE_SPEED, SKID_SPEED_DIFF, TURN_SPEED } from "../constants";
 
 const SIZE = Vector.create(64, 32);
 
@@ -14,18 +15,12 @@ const CARS_IMAGESOURCE = new URL(
 );
 const IMAGESET = new ImageSet(CARS_IMAGESOURCE, SIZE, 6);
 
-const TURN_SPEED = 2 * Math.PI;
-const ACCELERATION = 0.15;
-const MAX_SPEED = 15;
-const TRAIL_SPEED_DIFF = 0.4;
-const TRAIL_ANGLE_DIFF = Math.PI / 3;
-const TRAIL_ANGLE_SPEED = 0.4;
-
 export class Car extends Thing {
     private _desiredAngle: number | undefined;
     private _desiredSpeed: number | undefined;
 
     lap = 1;
+    place = 0;
     nextCheckpoint = 0;
 
     trailFrontLeft?: Trail;
@@ -37,12 +32,11 @@ export class Car extends Thing {
         super(view, body, IMAGESET.getImage(index).makeElement(), Vector.mult(SIZE, 0.5));
         this._desiredAngle = undefined;
         this._desiredSpeed = 0;
-        this.elem.classList.add('car');
         view.addThing(this);
     }
 
     static create(view: View, index: number, position: Vector) {
-        const body = Bodies.rectangle(position.x, position.y, SIZE.x - 4, SIZE.y - 4, {
+        const body = Bodies.rectangle(position.x, position.y, SIZE.x - COLLISION_INSET * 2, SIZE.y - COLLISION_INSET * 2, {
             friction: 1,
             restitution: 0.8,
         });
@@ -67,7 +61,7 @@ export class Car extends Thing {
 
     tick(sec: number) {
         let targetAngle = this._desiredAngle;
-        let trails = 0;
+        let skids = 0;
         if (this.body.angularSpeed > 0) {
             Body.setAngularSpeed(this.body, Math.max(0, this.body.angularSpeed - 0.025 * sec));
         }
@@ -88,8 +82,8 @@ export class Car extends Thing {
         let desiredSpeed = this._desiredSpeed;
         if (desiredSpeed !== undefined) {
             const speedDiff = desiredSpeed - this.body.speed / MAX_SPEED;
-            if (speedDiff > TRAIL_SPEED_DIFF) {
-                trails = 2;
+            if (speedDiff > SKID_SPEED_DIFF) {
+                skids = 2;
             }
             const targetSpeed = Vector.mult(Vector.rotate(Vector.create(1, 0), this.body.angle), MAX_SPEED * desiredSpeed);
             const toward = Vector.sub(targetSpeed, this.body.velocity);
@@ -103,15 +97,15 @@ export class Car extends Thing {
         }
         super.tick(sec);
         const sideways = fixTurn(this.body.angle - Vector.angle(Vector.create(0, 0), this.body.velocity));
-        if (Math.abs(sideways) > TRAIL_ANGLE_DIFF && this.body.speed > TRAIL_ANGLE_SPEED * MAX_SPEED) {
-            trails = 4;
+        if (Math.abs(sideways) > SKID_ANGLE_DIFF && this.body.speed > SKID_ANGLE_SPEED * MAX_SPEED) {
+            skids = 4;
         }
         const backCenter = Vector.add(this.body.position, Vector.rotate(Vector.create(-SIZE.x * 0.4, 0), this.body.angle));
-        if (Math.random() < 0.08 + 0.1 * trails) {
+        if (Math.random() < 0.08 + 0.1 * skids) {
             const back = Vector.mult(Vector.rotate(Vector.create(-1, 0), this.body.angle), MAX_SPEED / 5);
             new Cloud(this.view, backCenter, Vector.add(this.body.velocity, back));
         }
-        if (trails >= 2) {
+        if (skids >= 2) {
             const backLeftTire = Vector.add(this.body.position, Vector.rotate(Vector.create(-SIZE.x * 0.4, -SIZE.y * 0.35), this.body.angle));
             this.trailBackLeft ??= new Trail(this.view, 3, 'black');
             this.trailBackLeft.elem.style.setProperty('opacity', '0.25');
@@ -123,7 +117,7 @@ export class Car extends Thing {
         } else {
             this.trailBackLeft = this.trailBackRight = undefined;
         }
-        if (trails >= 4) {
+        if (skids >= 4) {
             const frontLeftTire = Vector.add(this.body.position, Vector.rotate(Vector.create(SIZE.x * 0.4, -SIZE.y * 0.35), this.body.angle));
             this.trailFrontLeft ??= new Trail(this.view, 3, 'black');
             this.trailFrontLeft.elem.style.setProperty('opacity', '0.25');

@@ -2,8 +2,7 @@ import type { View } from '../view/view';
 import { SVG_NS } from '../util/html';
 import { Bodies, Body, Vector } from "matter-js";
 import { Direction, type Directions } from '../geom/direction';
-
-export const TILE_SIZE = 800;
+import { STANDARD_TRACK_RADIUS, STANDARD_TRACK_WIDTH, TILE_SIZE } from '../constants';
 
 export class Tile {
     readonly view: View;
@@ -46,9 +45,9 @@ export function basicTile(view: View, exits: Directions, offset: Vector): Tile {
     elem.style.setProperty('width', `${size}px`);
     elem.style.setProperty('height', `${size}px`);
     const path = document.createElementNS(SVG_NS, 'path');
-    const trackWidth = size * 0.5;
+    const trackWidth = STANDARD_TRACK_WIDTH;
     const fromEdge = (size - trackWidth) / 2;
-    const radius = size * 0.1;
+    const radius = STANDARD_TRACK_RADIUS;
     const inset = fromEdge - radius;
     const topLeft = w && n ? `${0} ${fromEdge} L${inset} ${fromEdge} A${radius} ${radius} 0 0 0 ${fromEdge} ${inset} L${fromEdge} ${0}`
         : w ? `${0} ${fromEdge}`

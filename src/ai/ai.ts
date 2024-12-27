@@ -3,7 +3,7 @@ import type { Car } from "../thing/car";
 import type { View } from "../view/view";
 
 function randomVector() {
-    return Vector.create(Math.random() * 2 - 1, Math.random() * 2 - 1);
+    return Vector.create(Math.random() - 0.5, Math.random() - 0.5);
 }
 
 export class Ai {
@@ -22,7 +22,7 @@ export class Ai {
     }
 
     tick(sec: number) {
-        const checkpoint = this.view.checkpoints[this.car.nextCheckpoint];
+        const checkpoint = this.car.place ? null : this.view.checkpoints[this.car.nextCheckpoint];
         let dir: Vector;
         if (!checkpoint) {
             if (this._anywhere && this._anywhereTime > 0) {

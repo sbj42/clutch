@@ -42,7 +42,7 @@ export class Cloud {
         this.velocity = Vector.mult(this.velocity, 0.98);
         this.opacity *= 0.94;
         this.time += sec;
-        return this.time < 2;
+        return this.time < 1.5;
     }
 
     draw() {

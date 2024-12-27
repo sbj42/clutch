@@ -2,11 +2,13 @@ import { Car } from "./thing/car";
 import { Map } from "./map/map";
 import { View } from "./view/view";
 import pressed from 'pressed';
-import { TILE_SIZE } from "./map/tile";
 import { Vector } from "matter-js";
 import { Ai } from "./ai/ai";
+import { MINIMAP_SCALE, TILE_SIZE } from "./constants";
 
 const top = document.getElementById('top')!;
+top.style.setProperty('font-family', 'monospace');
+top.style.setProperty('color', 'white');
 const view = new View(top);
 const map = new Map(view, Vector.create(3, 3));
 const player = Car.create(view, 0, Vector.create(TILE_SIZE / 2, TILE_SIZE / 2));
@@ -16,14 +18,41 @@ const overlay = document.createElement('div');
 overlay.style.setProperty('position', 'absolute');
 overlay.style.setProperty('inset', '0');
 overlay.style.setProperty('display', 'flex');
-overlay.style.setProperty('align-items', 'center');
-overlay.style.setProperty('justify-content', 'center');
+overlay.style.setProperty('flex-direction', 'column');
 top.appendChild(overlay);
+const topDiv = document.createElement('div');
+topDiv.style.setProperty('flex', '0');
+topDiv.style.setProperty('display', 'flex');
+overlay.appendChild(topDiv);
+const lapDiv = document.createElement('div');
+lapDiv.style.setProperty('font-size', '50px');
+lapDiv.style.setProperty('flex', '1');
+topDiv.appendChild(lapDiv);
+const minimapDiv = document.createElement('div');
+minimapDiv.style.setProperty('position', 'relative');
+minimapDiv.style.setProperty('background-color', 'black');
+minimapDiv.style.setProperty('width', `${TILE_SIZE * map.size.x * MINIMAP_SCALE}px`);
+minimapDiv.style.setProperty('height', `${TILE_SIZE * map.size.y * MINIMAP_SCALE}px`);
+for (let y = 0; y < map.size.y; y++) {
+    for (let x = 0; x < map.size.x; x++) {
+        const minitile = map.getTile(x, y).elem.cloneNode(true) as HTMLElement;
+        minitile.style.setProperty('transform-origin', `0 0`);
+        minitile.style.setProperty('scale', `${MINIMAP_SCALE}`);
+        minitile.style.setProperty('left', (x * TILE_SIZE * MINIMAP_SCALE) + 'px');
+        minitile.style.setProperty('top', (y * TILE_SIZE * MINIMAP_SCALE) + 'px');
+        minimapDiv.appendChild(minitile);
+    }
+}
+topDiv.appendChild(minimapDiv);
+const middleDiv = document.createElement('div');
+middleDiv.style.setProperty('flex', '1');
+middleDiv.style.setProperty('display', 'flex');
+middleDiv.style.setProperty('align-items', 'center');
+middleDiv.style.setProperty('justify-content', 'center');
+overlay.appendChild(middleDiv);
 const countdownDiv = document.createElement('div');
 countdownDiv.style.setProperty('font-size', '200px');
-countdownDiv.style.setProperty('font-family', 'monospace');
-countdownDiv.style.setProperty('color', 'white');
-overlay.appendChild(countdownDiv);
+middleDiv.appendChild(countdownDiv);
 
 let countdown = 3;
 
@@ -47,6 +76,10 @@ function tick(sec: number) {
             countdownDiv.innerHTML = '';
             view.active = true;
         }
+    } else if (player.place) {
+        lapDiv.textContent = `#${player.place}`;
+    } else {
+        lapDiv.textContent = `${player.lap}/${map.laps}`;
     }
     view.tick(sec);
 }

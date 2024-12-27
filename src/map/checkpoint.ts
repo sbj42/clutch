@@ -1,7 +1,7 @@
-import type { View } from '../view/view';
+import { TILE_SIZE } from '../constants';
 import { SVG_NS } from '../util/html';
 import { Bodies, Body, Vector } from "matter-js";
-import { TILE_SIZE, type Tile } from './tile';
+import { Tile } from './tile';
 
 export class Checkpoint {
     readonly rect: SVGRectElement;

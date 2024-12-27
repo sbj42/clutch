@@ -6,6 +6,7 @@ import { Direction, Directions } from "../geom/direction";
 export class Map {
     readonly size: Vector;
     readonly tiles: Tile[] = [];
+    readonly laps = 3;
 
     constructor(view: View, size: Vector) {
         this.size = size;
