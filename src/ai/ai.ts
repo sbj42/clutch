@@ -1,28 +1,32 @@
 import { Vector } from "matter-js";
-import type { Car } from "../thing/car";
-import type { View } from "../view/view";
+import type { Car } from "../game/car";
+import { Race } from "../game/race";
+import { TILE_SIZE } from "../constants";
 
 function randomVector() {
     return Vector.create(Math.random() - 0.5, Math.random() - 0.5);
 }
 
-export class Ai {
-    view: View;
-    car: Car;
+export type AiType = {
     speed: number;
+}
+
+export class Ai {
+    readonly race: Race;
+    readonly car: Car;
+    readonly type: Readonly<AiType>;
 
     private _anywhere?: Vector;
     private _anywhereTime = 0;
 
-    constructor(car: Car, speed: number) {
+    constructor(race: Race, car: Car, type: AiType) {
+        this.race = race;
         this.car = car;
-        this.view = car.view;
-        this.view.addAi(this);
-        this.speed = speed;
+        this.type = type;
     }
 
     tick(sec: number) {
-        const checkpoint = this.car.place ? null : this.view.checkpoints[this.car.nextCheckpoint];
+        const checkpoint = this.car.state === 'finished' ? null : this.race.track.checkpoints[this.car.nextCheckpoint];
         let dir: Vector;
         if (!checkpoint) {
             if (this._anywhere && this._anywhereTime > 0) {
@@ -33,8 +37,10 @@ export class Ai {
             }
             dir = this._anywhere;
         } else {
-            dir = Vector.normalise(Vector.sub(checkpoint.sensor.position, this.car.body.position));
+            const tileOffset = checkpoint.tile.offset;
+            const position = Vector.mult(Vector.create(tileOffset.x + 0.5, tileOffset.y + 0.5), TILE_SIZE);
+            dir = Vector.normalise(Vector.sub(position, this.car.body.position));
         }
-        this.car.go(Vector.mult(dir, this.speed));
+        this.car.go(Vector.mult(dir, this.type.speed));
     }
 }
