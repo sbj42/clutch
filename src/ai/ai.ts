@@ -2,10 +2,7 @@ import { Vector } from "matter-js";
 import type { Car } from "../game/car";
 import { Race } from "../game/race";
 import { TILE_SIZE } from "../constants";
-
-function randomVector() {
-    return Vector.create(Math.random() - 0.5, Math.random() - 0.5);
-}
+import { Offset } from "tiled-geometry";
 
 export type AiType = {
     speed: number;
@@ -16,8 +13,8 @@ export class Ai {
     readonly car: Car;
     readonly type: Readonly<AiType>;
 
-    private _anywhere?: Vector;
-    private _anywhereTime = 0;
+    private _anywhere?: number;
+    private _nextTarget?: Offset;
 
     constructor(race: Race, car: Car, type: AiType) {
         this.race = race;
@@ -26,21 +23,35 @@ export class Ai {
     }
 
     tick(sec: number) {
-        const checkpoint = this.car.state === 'finished' ? null : this.race.track.checkpoints[this.car.nextCheckpoint];
-        let dir: Vector;
-        if (!checkpoint) {
-            if (this._anywhere && this._anywhereTime > 0) {
-                this._anywhereTime -= sec;
-            } else {
-                this._anywhere = randomVector();
-                this._anywhereTime = Math.random() + 0.5;
+        let checkpoint = this.car.state !== 'finished' ? this.race.track.checkpoints[this.car.nextCheckpoint]
+            : this._anywhere !== undefined ? this.race.track.checkpoints[this._anywhere]
+            : null;
+        const position = this.car.body.position;
+        const x = Math.floor(position.x / TILE_SIZE);
+        const y = Math.floor(position.y / TILE_SIZE);
+        if (this._nextTarget) {
+            if (this._nextTarget.x === x && this._nextTarget.y === y) {
+                this._nextTarget = undefined;
             }
-            dir = this._anywhere;
-        } else {
-            const tileOffset = checkpoint.tile.offset;
-            const position = Vector.mult(Vector.create(tileOffset.x + 0.5, tileOffset.y + 0.5), TILE_SIZE);
-            dir = Vector.normalise(Vector.sub(position, this.car.body.position));
         }
-        this.car.go(Vector.mult(dir, this.type.speed));
+        if (!this._nextTarget) {
+            if (this._anywhere !== undefined && checkpoint?.tile.offset.x === x && checkpoint?.tile.offset.y === y) {
+                checkpoint = null;
+            }
+            if (!checkpoint) {
+                this._anywhere = Math.floor(Math.random() * this.race.track.checkpoints.length);
+                checkpoint = this.race.track.checkpoints[this._anywhere];
+            }
+            const pathDirs = this.race.track.getPathfinder(checkpoint.index).getNextStep(x, y);
+            const dir = pathDirs[Math.floor(Math.random() * pathDirs.length)];
+            this._nextTarget = new Offset(x, y).addDirection(dir);
+        }
+        if (this._nextTarget) {
+            const targetPosition = Vector.create((this._nextTarget.x + 0.5) * TILE_SIZE, (this._nextTarget.y + 0.5) * TILE_SIZE);
+            const targetDir = Vector.normalise(Vector.sub(targetPosition, this.car.body.position));
+            this.car.go(Vector.mult(targetDir, this.type.speed));
+        } else {
+            this.car.go(undefined);
+        }
     }
 }

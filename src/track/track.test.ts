@@ -1,5 +1,6 @@
 import { Direction } from "tiled-geometry";
 import { Track } from "./track";
+import { TrackBuilder } from "./track-builder";
 
 describe('Track', () => {
     test('simple add', () => {
@@ -20,5 +21,22 @@ describe('Track', () => {
         expect(t.getTile(1, 0)?.getExit(Direction.WEST)).toBeUndefined();
         expect(t.getTile(2, 0)?.getExit(Direction.EAST)).toBeUndefined();
         expect(t.getTile(2, 0)?.getExit(Direction.WEST)).toBeDefined();
+    });
+    test('pathfinder', () => {
+        // .-*-.
+        // |  \ \
+        // .   .-.
+        // |     |
+        // .-.-.-.
+        const tb = new TrackBuilder(1, 0, Direction.WEST)
+            .go(Direction.EAST, Direction.SOUTHEAST, Direction.SOUTH, Direction.WEST, Direction.WEST, Direction.WEST, Direction.NORTH, Direction.NORTH);
+        tb.moveTo(1, 0)
+            .go(Direction.SOUTHEAST, Direction.EAST);
+        const t = tb.done();
+        const pf = t.getPathfinder(0);
+        expect(pf.getNextStep(0, 0)).toEqual([Direction.EAST]);
+        expect(pf.getNextStep(1, 2)).toEqual([Direction.WEST]);
+        expect(pf.getNextStep(2, 2)).toEqual([Direction.EAST]);
+        expect(pf.getNextStep(3, 1).sort()).toEqual([Direction.NORTHWEST, Direction.WEST].sort());
     });
 });

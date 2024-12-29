@@ -2,6 +2,7 @@ import { Direction, Size, Offset, directionOpposite, SizeLike, OffsetLike }  fro
 import { TrackTile } from './track-tile';
 import { Checkpoint } from './checkpoint';
 import { NARROW_TRACK_WIDTH, STANDARD_TRACK_WIDTH } from '../constants';
+import { Pathfinder } from './pathfinder';
 
 export type TrackWidth = 'standard' | 'narrow';
 
@@ -25,6 +26,7 @@ export class Track {
     private _size = new Size();
     private _tiles: TileArray = [];
     private _checkpoints: Checkpoint[] = [];
+    private _pathfinders?: Pathfinder[];
 
     get size(): SizeLike {
         return this._size;
@@ -59,6 +61,7 @@ export class Track {
             x = otherOffset.x;
             y = otherOffset.y;
         }
+        this._pathfinders = undefined;
         return { x, y };
     }
 
@@ -70,6 +73,18 @@ export class Track {
         const checkpoint = new Checkpoint(this._checkpoints.length, tile, direction);
         this._checkpoints.push(checkpoint);
         tile.checkpoint = checkpoint;
+        this._pathfinders = undefined;
+    }
+
+    getPathfinder(checkpointIndex: number) {
+        if (this._pathfinders === undefined) {
+            this._pathfinders = [];
+            for (const checkpoint of this._checkpoints) {
+                const offset = checkpoint.tile.offset;
+                this._pathfinders.push(new Pathfinder(this, offset.x, offset.y));
+            }
+        }
+        return this._pathfinders[checkpointIndex];
     }
 
     //#region Internal

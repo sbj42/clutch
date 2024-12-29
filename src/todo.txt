@@ -1,4 +1,3 @@
-pathfinding
 obstacles
 reverse
 more cars
