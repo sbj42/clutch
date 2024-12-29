@@ -140,11 +140,15 @@ export class Race {
         for (const cell of grid.cells) {
             const position = Vector.sub(Vector.add(tileTopLeft, cell), Vector.rotate(Vector.create(collisionSize.width / 2, 0), grid.angle - Math.PI / 2));
             body = Bodies.rectangle(position.x, position.y, collisionSize.width, collisionSize.height, {
+                label: `car:${this._cars.length}`,
                 angle: grid.angle - Math.PI / 2,
                 friction: 1,
                 restitution: 0.8,
             });
-            const collision = Query.collides(body, Composite.allBodies(this._engine.world));
+            const collision = Query.collides(body, Composite.allBodies(this._engine.world))
+                .filter(col => {
+                    return !col.bodyA.isSensor && !col.bodyB.isSensor;
+                });
             if (collision.length === 0) {
                 break;
             }

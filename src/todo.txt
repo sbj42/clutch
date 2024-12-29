@@ -1,3 +1,4 @@
+pause menu (resume, restart, quit)
 ai should recalibrate next target if it gets knocked back
 obstacles
 reverse

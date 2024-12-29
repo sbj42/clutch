@@ -174,6 +174,7 @@ export function getCheckpointSensor(checkpoint: Checkpoint): Body {
     const polyBody = (vertices: Vector[]) => {
         const bounds = Bounds.create(vertices);
         const ret = Bodies.fromVertices(0, 0, [vertices], {
+            label: `checkpoint:${checkpoint.index}`,
             isSensor: true,
         });
         Body.setPosition(ret, Vector.sub(bounds.min, ret.bounds.min));

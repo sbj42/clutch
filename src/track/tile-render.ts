@@ -204,6 +204,7 @@ export function getTileComposite(tile: Tile | undefined): Composite | undefined 
         const polyBody = (vertices: Vector[]) => {
             const bounds = Bounds.create(vertices);
             const ret = Bodies.fromVertices(0, 0, [vertices], {
+                label: `barrier:${tile.offset}`,
                 isStatic: true,
             });
             Body.setPosition(ret, Vector.sub(bounds.min, ret.bounds.min));

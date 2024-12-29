@@ -1,4 +1,4 @@
-import { Direction, Offset } from "tiled-geometry";
+import { Direction } from "tiled-geometry";
 import { TrackBuilder } from "../track-builder";
 
 // .-.-*
@@ -9,7 +9,7 @@ import { TrackBuilder } from "../track-builder";
 //     |   |
 //     2-.-.
 
-export const SMALL1 = TrackBuilder.start(1, 0, Direction.EAST)
+export const DOGBONE = TrackBuilder.start(1, 0, Direction.EAST)
     .go(Direction.SOUTH)
     .trackWidth('narrow')
     .go(Direction.SOUTHEAST)

@@ -25,21 +25,21 @@ export class RaceUi {
 
     private readonly _wireframe: boolean;
 
-    private readonly _mainDiv = this._makeLayer('main');
-    private readonly _trackLayer = this._makeLayer('track');
-    private readonly _checkpointLayer = this._makeLayer('checkpoints');
-    private readonly _markLayer = this._makeLayer('marks');
-    private readonly _thingLayer = this._makeLayer('things');
-    private readonly _airLayer = this._makeLayer('air');
+    private readonly _mainDiv = this._makeLayer('race-main');
+    private readonly _trackLayer = this._makeLayer('main-track');
+    private readonly _checkpointLayer = this._makeLayer('main-checkpoints');
+    private readonly _markLayer = this._makeLayer('main-marks');
+    private readonly _thingLayer = this._makeLayer('main-things');
+    private readonly _airLayer = this._makeLayer('main-air');
 
     private readonly _statusDiv: HTMLElement;
     private readonly _countdownDiv: HTMLElement;
 
     private readonly _miniScale: number;
-    private readonly _miniDiv: HTMLElement;
-    private readonly _miniTrackLayer = this._makeLayer('minitrack');
-    private readonly _miniCheckpointLayer = this._makeLayer('minicheckpoints');
-    private readonly _miniThingLayer = this._makeLayer('minithings');
+    private readonly _miniDiv = this._makeLayer('race-mini')
+    private readonly _miniTrackLayer = this._makeLayer('mini-track');
+    private readonly _miniCheckpointLayer = this._makeLayer('mini-checkpoints');
+    private readonly _miniThingLayer = this._makeLayer('mini-things');
 
     private readonly _carUis: CarUi[] = [];
     private readonly _marks: MarkUi[] = [];
