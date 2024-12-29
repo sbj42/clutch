@@ -1,39 +1,63 @@
-import { Direction, Size, Offset, directionOpposite, SizeLike, OffsetLike }  from 'tiled-geometry';
-import { TrackTile } from './track-tile';
-import { Checkpoint } from './checkpoint';
-import { NARROW_TRACK_WIDTH, STANDARD_TRACK_WIDTH } from '../constants';
+import { Size, SizeLike }  from 'tiled-geometry';
+import { Tile, TileInfo } from './tile';
+import { Checkpoint, CheckpointInfo } from './checkpoint';
 import { Pathfinder } from './pathfinder';
+import { offsetFromString } from '../geom/offset-str';
 
-export type TrackWidth = 'standard' | 'narrow';
+type TileArray = Array<Tile | undefined>;
 
-export type AddOptions = {
-    trackWidth?: TrackWidth;
-    checkpoint?: boolean;
-}
-
-type TileArray = Array<TrackTile | undefined>;
-
-const TEMP_OFFSET = new Offset();
-
-function _getTrackWidth(trackWidth: TrackWidth) {
-    switch (trackWidth) {
-        case 'narrow': return NARROW_TRACK_WIDTH;
-        default: return STANDARD_TRACK_WIDTH;
-    }
+export type TrackInfo = {
+    startOffset: string;
+    start: CheckpointInfo;
+    tiles: Record<string, TileInfo>;
 }
 
 export class Track {
     private _size = new Size();
     private _tiles: TileArray = [];
+    private _start: Checkpoint;
     private _checkpoints: Checkpoint[] = [];
-    private _pathfinders?: Pathfinder[];
+    private _pathfinders: Pathfinder[] = [];
+
+    constructor(info: TrackInfo) {
+        for (const offsetStr in info.tiles) {
+            const offset = offsetFromString(offsetStr);
+            this._size.set(Math.max(this._size.width, offset.x + 1), Math.max(this._size.height, offset.y + 1));
+        }
+        for (const offsetStr in info.tiles) {
+            const offset = offsetFromString(offsetStr);
+            const tile = new Tile(offset, info.tiles[offsetStr]);
+            this._tiles[this._size.index(offset.x, offset.y)] = tile;
+            if (tile.checkpoint) {
+                this._checkpoints[tile.checkpoint.index] = tile.checkpoint;
+            }
+        }
+        const startOffset = offsetFromString(info.startOffset);
+        const startTile = this.getTile(startOffset.x, startOffset.y);
+        if (!startTile) {
+            throw new Error('invalid start');
+        }
+        this._start = new Checkpoint(startTile, info.start);
+        for (const checkpoint of this._checkpoints) {
+            const offset = checkpoint.tile.offset;
+            this._pathfinders.push(new Pathfinder(this, offset.x, offset.y));
+        }
+    }
 
     get size(): SizeLike {
         return this._size;
     }
 
+    get start() {
+        return this._start;
+    }
+
     get checkpoints(): readonly Checkpoint[] {
         return this._checkpoints;
+    }
+
+    get pathfinders(): readonly Pathfinder[] {
+        return this._pathfinders;
     }
 
     getTile(x: number, y: number) {
@@ -43,87 +67,4 @@ export class Track {
         return this._tiles[this._size.index(x, y)];
     }
 
-    add(x: number, y: number, directions: Direction | Direction[], options?: AddOptions): OffsetLike {
-        const trackWidth = _getTrackWidth(options?.trackWidth ?? 'standard');
-        const checkpoint = options?.checkpoint ?? false;
-        if (!(directions instanceof Array)) {
-            directions = [directions];
-        }
-        for (const direction of directions) {
-            const tile1 = this._getOrCreateTile(x, y);
-            tile1.setExit(direction, { trackWidth });
-            const otherOffset = TEMP_OFFSET.set(x, y).addDirection(direction);
-            const tile2 = this._getOrCreateTile(otherOffset.x, otherOffset.y);
-            tile2.setExit(directionOpposite(direction), { trackWidth });
-            if (checkpoint) {
-                this.addCheckpoint(otherOffset.x, otherOffset.y, directionOpposite(direction));
-            }
-            x = otherOffset.x;
-            y = otherOffset.y;
-        }
-        this._pathfinders = undefined;
-        return { x, y };
-    }
-
-    addCheckpoint(x: number, y: number, direction: Direction) {
-        const tile = this.getTile(x, y);
-        if (!tile) {
-            throw new Error('invalid addCheckpoint');
-        }
-        const checkpoint = new Checkpoint(this._checkpoints.length, tile, direction);
-        this._checkpoints.push(checkpoint);
-        tile.checkpoint = checkpoint;
-        this._pathfinders = undefined;
-    }
-
-    getPathfinder(checkpointIndex: number) {
-        if (this._pathfinders === undefined) {
-            this._pathfinders = [];
-            for (const checkpoint of this._checkpoints) {
-                const offset = checkpoint.tile.offset;
-                this._pathfinders.push(new Pathfinder(this, offset.x, offset.y));
-            }
-        }
-        return this._pathfinders[checkpointIndex];
-    }
-
-    //#region Internal
-
-    private _setSize(width: number, height: number) {
-        const oldTiles = this._tiles;
-        const oldSize = this._size;
-        const newSize = new Size(width, height);
-        if (newSize.width < oldSize.width || newSize.height < oldSize.height) {
-            throw new Error('invalid setSize');
-        }
-        this._size = newSize;
-        this._tiles = new Array(this._size.area);
-        for (const offset of oldSize.offsets()) {
-            this._setTile(offset.x, offset.y, oldTiles[oldSize.index(offset.x, offset.y)]);
-        }
-    }
-
-    private _expandToInclude(x: number, y: number) {
-        if (!this._size.contains(x, y)) {
-            this._setSize(Math.max(this._size.width, x + 1), Math.max(this._size.height, y + 1));
-        }
-    }
-
-    private _getOrCreateTile(x: number, y: number): TrackTile {
-        this._expandToInclude(x, y);
-        let tile = this.getTile(x, y);
-        if (!tile) {
-            this._setTile(x, y, tile = new TrackTile(this, x, y));
-        }
-        return tile;
-    }
-
-    private _setTile(x: number, y: number, tile: TrackTile | undefined) {
-        if (!this._size.contains(x, y)) {
-            throw new Error('invalid setTile');
-        }
-        this._tiles[this._size.index(x, y)] = tile;
-    }
-
-    //#endregion
 }

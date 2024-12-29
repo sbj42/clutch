@@ -1,5 +1,5 @@
 import { directionIsCardinal, directionOpposite } from "tiled-geometry";
-import { TILE_SIZE } from "../constants";
+import { TILE_SIZE } from "./tile";
 import { Checkpoint } from "./checkpoint";
 import { Bodies, Body, Bounds, Composite, Vector } from "matter-js";
 import { directionToRadians } from "../geom/angle";
@@ -22,7 +22,7 @@ const START_WIDTH = 40;
 const START_CHECK_SIZE = 10;
 const START_CHECK_WHITE_COLOR = 'rgb(202, 202, 202)';
 const START_CHECK_BLACK_COLOR = 'rgb(53, 53, 53)';
-const START_TEXT_PAD = 10;
+const START_TEXT_PAD = 0;
 const START_TEXT_SIZE = 40;
 
 const START_GRID_COL_SIZE = 64;
@@ -79,7 +79,7 @@ export function getCheckpointSvg(doc: Document, checkpoint: Checkpoint, state: C
         throw new Error('invalid checkpoint');
     }
     const fromBackup = !directionIsCardinal(fromDir) ? sqrt2 * halfSize - halfSize : 0;
-    const trackWidth = fromExit.trackWidth;
+    const trackWidth = fromExit.trackWidth * size;
     const halfWidth = trackWidth / 2;
     const vec = (x: number, y: number) => {
         return Vector.add(center, Vector.rotate(Vector.create(x, y), directionToRadians(fromDir)));
@@ -136,7 +136,7 @@ export function getCheckpointSvg(doc: Document, checkpoint: Checkpoint, state: C
                 stroke: 'green',
             }));
         }
-        if (checkpoint.isFirst) {
+        if (state === 'start') {
             const grid = getStartGrid(checkpoint, 20);
             for (const vertex of grid.cells) {
                 svg.appendChild(makeSvgCircle(doc, {
@@ -165,7 +165,7 @@ export function getCheckpointSensor(checkpoint: Checkpoint): Body {
         throw new Error('invalid checkpoint');
     }
     const fromBackup = !directionIsCardinal(fromDir) ? sqrt2 * halfSize - halfSize : 0;
-    const trackWidth = fromExit.trackWidth;
+    const trackWidth = fromExit.trackWidth * size;
     const halfWidth = trackWidth / 2;
     const thickness = CHECKPOINT_TOTAL_WIDTH;
     const vec = (x: number, y: number) => {
@@ -202,7 +202,7 @@ export function getStartGrid(start: Checkpoint, minimumCells: number): StartGrid
     const size = TILE_SIZE;
     const halfSize = size / 2;
     const center = Vector.create(halfSize, halfSize);
-    const trackWidth = toExit.trackWidth;
+    const trackWidth = toExit.trackWidth * size;
     const carsPerRow = Math.floor(trackWidth / (START_GRID_COL_SIZE));
     const vec = (x: number, y: number) => {
         return Vector.add(center, Vector.rotate(Vector.create(x, y), directionToRadians(fromDir)));
@@ -235,7 +235,7 @@ export function getCheckpointMiniSvg(doc: Document, checkpoint: Checkpoint, stat
         throw new Error('invalid checkpoint');
     }
     const fromBackup = !directionIsCardinal(fromDir) ? sqrt2 * halfSize - halfSize : 0;
-    const trackWidth = fromExit.trackWidth * scale;
+    const trackWidth = fromExit.trackWidth * size;
     const halfWidth = trackWidth / 2;
     const vec = (x: number, y: number) => {
         return Vector.add(center, Vector.rotate(Vector.create(x, y), directionToRadians(fromDir)));

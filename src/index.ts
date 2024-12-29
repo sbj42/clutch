@@ -2,8 +2,9 @@ import { SMALL1 } from "./track/tracks/small1";
 import { Race } from "./game/race";
 import { getStandardCarType } from "./game/car-type";
 import { RaceUi } from "./ui/race-ui";
+import { LINE1 } from "./track/tracks/line1";
 
-const track = SMALL1;
+const track = SMALL1; // LINE1;
 const race = new Race(track, [
     { type: getStandardCarType(0), ai: undefined },
     { type: getStandardCarType(1), ai: { speed: 0.7 } },

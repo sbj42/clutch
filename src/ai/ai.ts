@@ -1,7 +1,7 @@
 import { Vector } from "matter-js";
 import type { Car } from "../game/car";
 import { Race } from "../game/race";
-import { TILE_SIZE } from "../constants";
+import { TILE_SIZE } from "../track/tile";
 import { Offset } from "tiled-geometry";
 
 export type AiType = {
@@ -23,7 +23,7 @@ export class Ai {
     }
 
     tick(sec: number) {
-        let checkpoint = this.car.state !== 'finished' ? this.race.track.checkpoints[this.car.nextCheckpoint]
+        let checkpoint = !this.car.finished ? this.race.track.checkpoints[this.car.nextCheckpoint]
             : this._anywhere !== undefined ? this.race.track.checkpoints[this._anywhere]
             : null;
         const position = this.car.body.position;
@@ -42,7 +42,7 @@ export class Ai {
                 this._anywhere = Math.floor(Math.random() * this.race.track.checkpoints.length);
                 checkpoint = this.race.track.checkpoints[this._anywhere];
             }
-            const pathDirs = this.race.track.getPathfinder(checkpoint.index).getNextStep(x, y);
+            const pathDirs = this.race.track.pathfinders[checkpoint.index].getNextStep(x, y);
             const dir = pathDirs[Math.floor(Math.random() * pathDirs.length)];
             this._nextTarget = new Offset(x, y).addDirection(dir);
         }

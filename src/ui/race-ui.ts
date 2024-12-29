@@ -1,19 +1,20 @@
-import { getTileSvg } from "../track/track-tile-render";
+import { getTileSvg } from "../track/tile-render";
 import { Race } from "../game/race";
 import { Size } from "tiled-geometry";
-import { TILE_SIZE } from "../constants";
+import { TILE_SIZE } from "../track/tile";
 import { CarUi } from "./car-ui";
 import { Vector } from "matter-js";
 import type { CloudUi } from "./cloud-ui";
 import { filterInPlace } from "../util/array";
 import { CheckpointUi } from "./checkpoint-ui";
 import type { MarkUi } from "./mark-ui";
+import { Checkpoint } from "../track/checkpoint";
 
 export type RaceUiOptions = {
     wireframe?: boolean;
 };
 
-function timeToStr(time: number) {
+function _timeToStr(time: number) {
     const mm = Math.floor(time / 60);
     const ss = (time - mm * 60).toFixed(1);
     return `${String(mm).padStart(2, '0')}:${String(ss).padStart(4, '0')}`;
@@ -43,6 +44,7 @@ export class RaceUi {
     private readonly _carUis: CarUi[] = [];
     private readonly _marks: MarkUi[] = [];
     private readonly _clouds: CloudUi[] = [];
+    private readonly _start: CheckpointUi;
     private readonly _checkpoints: CheckpointUi[] = [];
 
     constructor(elem: HTMLElement, race: Race, options?: RaceUiOptions) {
@@ -105,10 +107,11 @@ export class RaceUi {
         this._miniDiv.style.setProperty('right', '0');
         this._miniDiv.style.setProperty('width', `${track.size.width * TILE_SIZE * this._miniScale}px`);
         this._miniDiv.style.setProperty('height', `${track.size.height * TILE_SIZE * this._miniScale}px`);
+        this._miniDiv.style.setProperty('background-color', 'black');
+        this._miniDiv.style.setProperty('border', '1px solid grey');
         elem.appendChild(this._miniDiv);
 
         this._miniTrackLayer = this._makeLayer('minitrack');
-        this._miniTrackLayer.style.setProperty('background-color', 'black');
         this._miniTrackLayer.style.setProperty('scale', String(this._miniScale));
         this._miniDiv.appendChild(this._miniTrackLayer);
         this._miniCheckpointLayer = this._makeLayer('minicheckpoints');
@@ -135,28 +138,10 @@ export class RaceUi {
             this._carUis.push(carUi);
         }
 
+        this._start = this._makeCheckpointUi(this.race.track.start);
         for (const checkpoint of this.race.track.checkpoints) {
-            const offset = checkpoint.tile.offset;
-            const container = document.createElement('div');
-            container.style.setProperty('position', 'absolute');
-            container.style.setProperty('left', `${TILE_SIZE * (offset.x - 0.5)}px`);
-            container.style.setProperty('top', `${TILE_SIZE * (offset.y - 0.5)}px`);
-            this._checkpointLayer.appendChild(container);
-            const miniContainer = document.createElement('div');
-            miniContainer.style.setProperty('position', 'absolute');
-            miniContainer.style.setProperty('left', `${TILE_SIZE * this._miniScale * offset.x}px`);
-            miniContainer.style.setProperty('top', `${TILE_SIZE * this._miniScale * offset.y}px`);
-            this._miniCheckpointLayer.appendChild(miniContainer);
-            const checkpointUi = new CheckpointUi(this, container, miniContainer, checkpoint, this._miniScale, this._wireframe);
-            this._checkpoints.push(checkpointUi);
+            this._checkpoints.push(this._makeCheckpointUi(checkpoint));
         }
-    }
-
-    private _makeLayer(id: string) {
-        const layer = document.createElement('div');
-        layer.id = id;
-        layer.style.setProperty('position', 'absolute');
-        return layer;
     }
 
     addMark(mark: MarkUi) {
@@ -221,6 +206,7 @@ export class RaceUi {
         for (const cloud of this._clouds) {
             cloud.update()
         }
+        this._start.update();
         for (const checkpoint of this._checkpoints) {
             checkpoint.update()
         }
@@ -230,12 +216,41 @@ export class RaceUi {
             this._countdownDiv.textContent = '';
         }
         if (this.race.state !== 'countdown') {
-            if (player.place) {
-                this._statusDiv.textContent = `#${player.place} ${timeToStr(player.finishTime)}`;
+            const finished = player.finished;
+            if (finished) {
+                this._statusDiv.textContent = `#${finished.place} ${_timeToStr(finished.time)}`;
+            } else if (player.lap === 0) {
+                this._statusDiv.textContent = _timeToStr(this.race.time);
             } else {
-                this._statusDiv.textContent = `${player.lap}/${this.race.laps} ${timeToStr(this.race.time)}`;
+                this._statusDiv.textContent = `${player.lap}/${this.race.laps} ${_timeToStr(this.race.time)}`;
             }
         }
     }
+
+    //#region Internal
+
+    private _makeLayer(id: string) {
+        const layer = document.createElement('div');
+        layer.id = id;
+        layer.style.setProperty('position', 'absolute');
+        return layer;
+    }
+
+    private _makeCheckpointUi(checkpoint: Checkpoint) {
+        const offset = checkpoint.tile.offset;
+        const container = document.createElement('div');
+        container.style.setProperty('position', 'absolute');
+        container.style.setProperty('left', `${TILE_SIZE * (offset.x - 0.5)}px`);
+        container.style.setProperty('top', `${TILE_SIZE * (offset.y - 0.5)}px`);
+        this._checkpointLayer.appendChild(container);
+        const miniContainer = document.createElement('div');
+        miniContainer.style.setProperty('position', 'absolute');
+        miniContainer.style.setProperty('left', `${TILE_SIZE * this._miniScale * offset.x}px`);
+        miniContainer.style.setProperty('top', `${TILE_SIZE * this._miniScale * offset.y}px`);
+        this._miniCheckpointLayer.appendChild(miniContainer);
+        return new CheckpointUi(this, container, miniContainer, checkpoint, this._miniScale, this._wireframe);
+    }
+
+    //#endregion
 
 }

@@ -36,8 +36,8 @@ export class MarkUi {
         }
         this._lastPoint = point;
         this._points.push(`${point.x.toFixed(1)},${point.y.toFixed(1)}`);
-        this._max.x = Math.max(this._max.x, point.x);
-        this._max.y = Math.max(this._max.y, point.y);
+        this._max.x = Math.max(this._max.x, point.x + this._strokeWidth);
+        this._max.y = Math.max(this._max.y, point.y + this._strokeWidth);
         this._changed = true;
     }
 

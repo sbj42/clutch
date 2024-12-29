@@ -1,9 +1,4 @@
-import { Bodies, Body, Collision, Vector } from "matter-js";
-import { fixAngle, fixTurn } from "../geom/angle";
-import { ImageSet } from '../ui/image-set';
-import { ACCELERATION, MAX_SPEED, DRIFT_ANGLE_DIFF, DRIFT_SPEED, BURNOUT_SPEED_DIFF, TURN_SPEED } from "../constants";
-import { Size, SizeLike } from "tiled-geometry";
-import { Race } from "./race";
+import { Size } from "tiled-geometry";
 
 export type CarType = {
     readonly typeName: 'standard';

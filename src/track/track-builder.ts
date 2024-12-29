@@ -1,17 +1,31 @@
-import { directionOpposite, Offset, type Direction } from "tiled-geometry";
-import { Track, type AddOptions, type TrackWidth } from "./track";
+import { directionOpposite, directionToString, Offset, type Direction } from "tiled-geometry";
+import { Track, TrackInfo } from "./track";
+import { CheckpointInfo } from "./checkpoint";
+import { TileInfo } from "./tile";
+import { TrackWidth } from "./tile-exit";
 
 export class TrackBuilder {
-    private _track = new Track();
-    private _offset = new Offset();
-    private _addOpt: AddOptions = {};
-    private _lastDirection?: Direction;
+    private readonly _tiles: Record<string, TileInfo> = {};
+    private readonly _startOffset = new Offset();
+    private readonly _startInfo: CheckpointInfo;
 
-    constructor(x: number, y: number, fromDirection: Direction) {
-        this._lastDirection = directionOpposite(fromDirection);
-        this._track.add(x, y, fromDirection);
-        this._track.addCheckpoint(x, y, fromDirection);
-        this._offset.set(x, y);
+    private _offset = new Offset();
+    private _trackWidth: TrackWidth = 'standard';
+    private _lastDirection?: Direction;
+    private _nextCheckpointIndex = 0;
+
+    private constructor(x: number, y: number, startDirection: Direction) {
+        this.moveTo(x, y);
+        this.go(startDirection);
+        this._startOffset.copyFrom(this._offset);
+        this._startInfo = {
+            index: -1,
+            direction: directionOpposite(startDirection),
+        };
+    }
+
+    static start(x: number, y: number, startDirection: Direction): TrackBuilder {
+        return new TrackBuilder(x, y, startDirection);
     }
 
     moveTo(x: number, y: number): this {
@@ -21,26 +35,74 @@ export class TrackBuilder {
     }
 
     trackWidth(width: TrackWidth): this {
-        this._addOpt.trackWidth = width;
+        this._trackWidth = width;
         return this;
     }
 
     checkpoint(): this {
         if (!this._lastDirection) {
-            throw new Error('no track yet');
+            throw new Error('no direction');
         }
-        this._track.addCheckpoint(this._offset.x, this._offset.y, directionOpposite(this._lastDirection));
+        const tile = this._getTile(this._offset);
+        if (!tile) {
+            throw new Error('no tile');
+        }
+        const index = this._nextCheckpointIndex++;
+        const direction = directionOpposite(this._lastDirection);
+        tile.checkpoint = {
+            index,
+            direction,
+        };
         return this;
     }
 
-    go(...direction: Direction[]): this {
-        this._offset.copyFrom(this._track.add(this._offset.x, this._offset.y, direction, this._addOpt));
-        this._lastDirection = direction.at(-1);
+    go(...directions: Direction[]): this {
+        const trackWidth = this._trackWidth;
+        for (const direction of directions) {
+            const tile1 = this._getOrCreateTile(this._offset);
+            tile1.exits[directionToString(direction)] = { trackWidth };
+            this._offset.addDirection(direction);
+            const tile2 = this._getOrCreateTile(this._offset);
+            tile2.exits[directionToString(directionOpposite(direction))] = { trackWidth };
+            this._lastDirection = direction;
+        }
         return this;
     }
 
-    done(): Track {
-        return this._track;
+    toTrackInfo(): TrackInfo {
+        return {
+            startOffset: this._startOffset.toString(),
+            start: this._startInfo,
+            tiles: this._tiles,
+        };
     }
+
+    toTrack(): Track {
+        return new Track(this.toTrackInfo());
+    }
+    
+    //#region Internal
+
+    private _getTile(offset: Offset) {
+        return this._tiles[offset.toString()];
+    }
+
+    private _getOrCreateTile(offset: Offset) {
+        const offsetStr = offset.toString();
+        let tile = this._tiles[offsetStr];
+        if (!tile) {
+            tile = {
+                exits: {},
+            };
+            this._tiles[offsetStr] = tile;
+        }
+        return tile;
+    }
+
+    private _setTile(offset: Offset, tile: TileInfo) {
+        this._tiles[offset.toString()] = tile;
+    }
+
+    //#endregion
 
 }

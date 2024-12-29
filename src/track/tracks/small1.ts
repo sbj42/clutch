@@ -1,28 +1,29 @@
 import { Direction, Offset } from "tiled-geometry";
 import { TrackBuilder } from "../track-builder";
 
-// .-.-1
+// .-.-*
 // |   |
-// 4-. .
+// 3-. .
 //    \ \
-//     . .-2
+//     . .-1
 //     |   |
-//     3-.-.
+//     2-.-.
 
-export const SMALL1 = new TrackBuilder(2, 0, Direction.WEST)
+export const SMALL1 = TrackBuilder.start(1, 0, Direction.EAST)
     .go(Direction.SOUTH)
     .trackWidth('narrow')
     .go(Direction.SOUTHEAST)
     .trackWidth('standard')
     .go(Direction.EAST)
-    .checkpoint()
+    .checkpoint() // 1
     .go(Direction.SOUTH, Direction.WEST, Direction.WEST)
-    .checkpoint()
+    .checkpoint() // 2
     .go(Direction.NORTH)
     .trackWidth('narrow')
     .go(Direction.NORTHWEST)
     .trackWidth('standard')
     .go(Direction.WEST)
-    .checkpoint()
-    .go(Direction.NORTH, Direction.EAST)
-    .done();
+    .checkpoint() // 3
+    .go(Direction.NORTH, Direction.EAST, Direction.EAST)
+    .checkpoint() // *
+    .toTrack();

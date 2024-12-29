@@ -1,13 +1,14 @@
 import { Bodies, Body, Composite, Engine, Query, Vector } from "matter-js";
 import { Track } from "../track/track";
 import { Size } from "tiled-geometry";
-import { getTileComposite } from "../track/track-tile-render";
+import { getTileComposite } from "../track/tile-render";
 import { Car } from "./car";
 import { Ai, AiType } from "../ai/ai";
-import { TILE_SIZE } from "../constants";
+import { TILE_SIZE } from "../track/tile";
 import { getCheckpointSensor, getStartGrid } from "../track/checkpoint-render";
 import { getInputDirection } from "../ui/input";
 import { CarType, getCarCollisionSize } from "./car-type";
+import { Checkpoint } from "../track/checkpoint";
 
 export type RaceCar = {
     type: CarType;
@@ -24,6 +25,7 @@ export class Race {
     private readonly _engine: Engine;
     private readonly _cars: Car[] = [];
     private readonly _ais: Ai[] = [];
+    private readonly _startSensor: Body;
     private readonly _checkpointSensors: Body[] = [];
 
     private _state: RaceState = 'countdown';
@@ -40,6 +42,7 @@ export class Race {
             }
         });
         this._state = 'countdown';
+        this._startSensor = this._makeCheckpointSensor(this.track.start);
         this._addTiles();
         
         for (const c of cars) {
@@ -66,6 +69,10 @@ export class Race {
 
     get time() {
         return this._time;
+    }
+
+    getStartSensor() {
+        return this._startSensor;
     }
 
     getCheckpointSensor(index: number) {
@@ -111,20 +118,21 @@ export class Race {
             }
         }
         for (const checkpoint of this.track.checkpoints) {
-            const offset = checkpoint.tile.offset;
-            const sensor = getCheckpointSensor(checkpoint);
-            Body.translate(sensor, Vector.mult(Vector.create(offset.x, offset.y), TILE_SIZE));
-            Composite.add(this._engine.world, sensor);
-            this._checkpointSensors.push(sensor);
+            this._checkpointSensors.push(this._makeCheckpointSensor(checkpoint));
         }
+    }
+
+    private _makeCheckpointSensor(checkpoint: Checkpoint) {
+        const offset = checkpoint.tile.offset;
+        const sensor = getCheckpointSensor(checkpoint);
+        Body.translate(sensor, Vector.mult(Vector.create(offset.x, offset.y), TILE_SIZE));
+        Composite.add(this._engine.world, sensor);
+        return sensor;
     }
 
     private _addCar(type: CarType) {
         const collisionSize = getCarCollisionSize(type);
-        const start = this.track.checkpoints[0];
-        if (!start) {
-            throw new Error('no start');
-        }
+        const start = this.track.start;
         const grid = getStartGrid(start, (this._cars.length + 1) * 2);
         const tileOffset = start.tile.offset;
         const tileTopLeft = Vector.create(tileOffset.x * TILE_SIZE, tileOffset.y * TILE_SIZE);

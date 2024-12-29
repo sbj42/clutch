@@ -25,13 +25,14 @@ export class CheckpointUi {
         const index = this.checkpoint.index;
         const track = this.raceUi.race.track;
         const player = this.raceUi.race.player;
-        const playerState = player.state;
         let state: CheckpointState = 'inactive';
-        if (index === 0 && playerState === 'before-start') {
-            state = 'start';
-        } else if (index === 0 && playerState === 'finishing') {
+        if (player.lap === 0) {
+            if (this.checkpoint.isStart) {
+                state = 'start';
+            }
+        } else if (index === track.checkpoints.length - 1 && (player.almostFinished || player.finished)) {
             state = 'finish'
-        } else if (playerState === 'racing' || playerState === 'finishing') {
+        } else if (!player.finished && !this.checkpoint.isStart) {
             if (player.nextCheckpoint === index) {
                 state = 'next';
             } else if (player.nextCheckpoint === (index + 1) % track.checkpoints.length) {

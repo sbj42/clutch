@@ -1,10 +1,25 @@
 import { Body, Collision, Vector } from "matter-js";
 import { fixAngle, fixTurn } from "../geom/angle";
-import { ACCELERATION, MAX_SPEED, DRIFT_ANGLE_DIFF, DRIFT_SPEED, BURNOUT_SPEED_DIFF, TURN_SPEED } from "../constants";
 import { Race } from "./race";
 import { CarType } from "./car-type";
 
 export type CarState = 'before-start' | 'racing' | 'finishing' | 'finished';
+
+const ACCELERATION = 0.15;
+const MAX_SPEED = 15;
+// radians per second
+const TURN_SPEED = 2 * Math.PI;
+// when the car's speed is this much slower than desired, it skids
+const BURNOUT_SPEED_DIFF = 0.35;
+// when the car's angle is this much off from the travel angle, it drifts
+const DRIFT_ANGLE_DIFF = Math.PI / 3;
+// the car must be going this fast or else it's not drifting
+const DRIFT_SPEED = 0.4;
+
+export type Finished = {
+    place: number;
+    time: number;
+}
 
 export class Car {
     readonly race: Race;
@@ -12,8 +27,7 @@ export class Car {
     readonly type: CarType;
 
     private _lap = 0;
-    private _place = 0;
-    private _finishTime = 0;
+    private _finished?: Finished;
     private _nextCheckpoint = 0;
 
     private _desiredAngle: number | undefined;
@@ -31,23 +45,16 @@ export class Car {
         this._desiredSpeed = 0;
     }
 
-    get state(): CarState {
-        return this._lap === 0 ? 'before-start'
-            : this._place ? 'finished'
-            : this._lap < this.race.laps || this._nextCheckpoint !== 0 ? 'racing'
-            : 'finishing';
+    get almostFinished() {
+        return this._lap === this.race.laps && this._nextCheckpoint === this.race.track.checkpoints.length - 1;
+    }
+
+    get finished() {
+        return this._finished;
     }
 
     get lap() {
         return this._lap;
-    }
-
-    get place() {
-        return this._place;
-    }
-
-    get finishTime() {
-        return this._finishTime;
     }
 
     get nextCheckpoint() {
@@ -132,19 +139,30 @@ export class Car {
     }
 
     private _checkCheckpoint() {
-        if (this._place) {
+        if (this._finished) {
             return;
         }
-        const sensor = this.race.getCheckpointSensor(this._nextCheckpoint);
-        if (Collision.collides(this.body, sensor)) {
-            if (this._nextCheckpoint === 0) {
-                this._lap ++;
-                if (this._lap > this.race.laps) {
-                    this._place = this.race.claimPlace();
-                    this._finishTime = this.race.time;
-                }
+        if (this._lap === 0) {
+            const sensor = this.race.getStartSensor();
+            if (Collision.collides(this.body, sensor)) {
+                this._lap = 1;
             }
-            this._nextCheckpoint = (this._nextCheckpoint + 1) % this.race.track.checkpoints.length;
+        } else {
+            const sensor = this.race.getCheckpointSensor(this._nextCheckpoint);
+            if (Collision.collides(this.body, sensor)) {
+                if (this._nextCheckpoint < this.race.track.checkpoints.length - 1) {
+                    this._nextCheckpoint++;
+                } else {
+                    this._lap ++;
+                    this._nextCheckpoint = 0;
+                    if (this._lap > this.race.laps) {
+                        this._finished = {
+                            place: this.race.claimPlace(),
+                            time: this.race.time,
+                        };
+                    }
+                }
+            }   
         }
     }
 

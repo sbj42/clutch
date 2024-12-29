@@ -1,11 +1,11 @@
 import { Bodies, Body, Bounds, Composite, Vector } from "matter-js";
-import { BARRIER_THICKNESS, TILE_SIZE } from '../constants';
-import { TrackTile } from './track-tile';
+import { TILE_SIZE } from "./tile";
+import { Tile } from './tile';
 import { Direction, directionAddTurn, directionIsCardinal, directionOpposite, DIRECTIONS, Turn, turnFromDirections, turnToString } from 'tiled-geometry';
 import { directionToRadians } from '../geom/angle';
 import { makeSvg, makeSvgPath, makeSvgRect } from "../util/svg";
 
-function _nextExitDirection(from: Direction, tile: TrackTile): Direction | undefined {
+function _nextExitDirection(from: Direction, tile: Tile): Direction | undefined {
     for (let i = 0; i < DIRECTIONS.length; i++) {
         from = directionAddTurn(from, Turn.R_45);
         if (tile.getExit(from)) {
@@ -19,9 +19,19 @@ export type TileSvgOptions = {
     wireframe?: boolean;
 }
 
+const BARRIER_THICKNESS = 15;
+
 const TILE_BACKGROUND_DIRT = 'rgb(97, 62, 34)';
+
+const SQRT2 = Math.sqrt(2);
+const SIN30 = Math.sin(Math.PI / 6);
+const COS30 = Math.cos(Math.PI / 6);
+const SIN22_5 = Math.sin(Math.PI / 8);
+const COS22_5 = Math.cos(Math.PI / 8);
+const TAN22_5 = Math.tan(Math.PI / 8);
+
 // Note that the svg is always twice as big as the tile
-export function getTileSvg(doc: Document, tile: TrackTile | undefined, options?: TileSvgOptions): SVGElement | undefined {
+export function getTileSvg(doc: Document, tile: Tile | undefined, options?: TileSvgOptions): SVGElement | undefined {
     const wireframe = options?.wireframe ?? false;
     if (!tile) {
         return;
@@ -33,7 +43,6 @@ export function getTileSvg(doc: Document, tile: TrackTile | undefined, options?:
 
     const size = TILE_SIZE;
     const halfSize = size / 2;
-    const sqrt2 = Math.sqrt(2);
     const svg = makeSvg(doc, {
         width: size * 2,
         height: size * 2,
@@ -44,14 +53,14 @@ export function getTileSvg(doc: Document, tile: TrackTile | undefined, options?:
     let fromDir = firstDirection;
     while (true) {
         const fromExit = tile.getExit(fromDir)!;
-        const fromWidth = fromExit.trackWidth;
+        const fromWidth = fromExit.trackWidth * size;
         const fromHalfWidth = fromWidth / 2;
-        const fromBackup = !directionIsCardinal(fromDir) ? sqrt2 * halfSize - halfSize : 0;
+        const fromBackup = !directionIsCardinal(fromDir) ? SQRT2 * halfSize - halfSize : 0;
         const toDir = _nextExitDirection(fromDir, tile)!;
         const toExit = tile.getExit(toDir)!;
-        const toWidth = toExit.trackWidth;
+        const toWidth = toExit.trackWidth * size;
         const toHalfWidth = toWidth / 2;
-        const toBackup = !directionIsCardinal(toDir) ? sqrt2 * halfSize - halfSize : 0;
+        const toBackup = !directionIsCardinal(toDir) ? SQRT2 * halfSize - halfSize : 0;
         const turn = turnFromDirections(directionOpposite(fromDir), toDir);
         const vec = (x: number, y: number) => {
             return Vector.add(center, Vector.rotate(Vector.create(x, y), directionToRadians(fromDir)));
@@ -104,16 +113,20 @@ export function getTileSvg(doc: Document, tile: TrackTile | undefined, options?:
             }
         } else if (turn === Turn.L_45) {
             // slight left turn
+            const radius = 2 * (halfSize - Math.max(fromHalfWidth, toHalfWidth));
             const v1 = vec(fromHalfWidth, -halfSize - fromBackup);
-            const v2 = vec(fromHalfWidth, fromHalfWidth - sqrt2 * toHalfWidth);
-            const v3 = vec((halfSize + toHalfWidth + toBackup) / sqrt2, (halfSize - toHalfWidth + toBackup) / sqrt2);
-            path.push(`${v1.x} ${v1.y} L${v2.x} ${v2.y} L${v3.x} ${v3.y}`);
+            const v2 = vec(fromHalfWidth, fromHalfWidth - SQRT2 * toHalfWidth - TAN22_5 * radius);
+            const v3 = vec(fromHalfWidth + TAN22_5 * radius / SQRT2, fromHalfWidth - SQRT2 * toHalfWidth + TAN22_5 * radius / SQRT2);
+            const v4 = vec((halfSize + toHalfWidth + toBackup) / SQRT2, (halfSize - toHalfWidth + toBackup) / SQRT2);
+            path.push(`${v1.x} ${v1.y} L${v2.x} ${v2.y} A${radius} ${radius} 0 0 0 ${v3.x} ${v3.y} L${v4.x} ${v4.y}`);
         } else if (turn === Turn.R_45) {
             // slight right turn
+            const radius = 2 * (halfSize - Math.max(fromHalfWidth, toHalfWidth));
             const v1 = vec(fromHalfWidth, -halfSize - fromBackup);
-            const v2 = vec(fromHalfWidth, -fromHalfWidth + sqrt2 * toHalfWidth);
-            const v3 = vec((-halfSize + toHalfWidth - toBackup) / sqrt2, (halfSize + toHalfWidth + toBackup) / sqrt2);
-            path.push(`${v1.x} ${v1.y} L${v2.x} ${v2.y} L${v3.x} ${v3.y}`);
+            const v2 = vec(fromHalfWidth, -fromHalfWidth + SQRT2 * toHalfWidth - TAN22_5 * radius);
+            const v3 = vec(fromHalfWidth - TAN22_5 * radius / SQRT2, -fromHalfWidth + SQRT2 * toHalfWidth + TAN22_5 * radius / SQRT2);
+            const v4 = vec((-halfSize + toHalfWidth - toBackup) / SQRT2, (halfSize + toHalfWidth + toBackup) / SQRT2);
+            path.push(`${v1.x} ${v1.y} L${v2.x} ${v2.y} A${radius} ${radius} 0 0 1 ${v3.x} ${v3.y} L${v4.x} ${v4.y}`);
         } else {
             throw new Error('unimplemented turn ' + turnToString(turn));
         }
@@ -158,7 +171,7 @@ export function getTileSvg(doc: Document, tile: TrackTile | undefined, options?:
 }
 
 // Composite is offset from the top-left corner of the tile
-export function getTileComposite(tile: TrackTile | undefined): Composite | undefined {
+export function getTileComposite(tile: Tile | undefined): Composite | undefined {
     if (!tile) {
         return;
     }
@@ -170,23 +183,20 @@ export function getTileComposite(tile: TrackTile | undefined): Composite | undef
     const thickness = BARRIER_THICKNESS;
     const size = TILE_SIZE;
     const halfSize = size / 2;
-    const sqrt2 = Math.sqrt(2);
-    const sin30 = Math.sin(Math.PI / 6);
-    const cos30 = Math.cos(Math.PI / 6);
     const center = Vector.create(halfSize, halfSize);
     const bodies: Body[] = [];
 
     let fromDir = firstDirection;
     while (true) {
         const fromExit = tile.getExit(fromDir)!;
-        const fromWidth = fromExit.trackWidth;
+        const fromWidth = fromExit.trackWidth * size;
         const fromHalfWidth = fromWidth / 2;
-        const fromBackup = !directionIsCardinal(fromDir) ? sqrt2 * halfSize - halfSize : 0;
+        const fromBackup = !directionIsCardinal(fromDir) ? SQRT2 * halfSize - halfSize : 0;
         const toDir = _nextExitDirection(fromDir, tile)!;
         const toExit = tile.getExit(toDir)!;
-        const toWidth = toExit.trackWidth;
+        const toWidth = toExit.trackWidth * size;
         const toHalfWidth = toWidth / 2;
-        const toBackup = !directionIsCardinal(toDir) ? sqrt2 * halfSize - halfSize : 0;
+        const toBackup = !directionIsCardinal(toDir) ? SQRT2 * halfSize - halfSize : 0;
         const turn = turnFromDirections(directionOpposite(fromDir), toDir);
         const vec = (x: number, y: number) => {
             return Vector.add(center, Vector.rotate(Vector.create(x, y), directionToRadians(fromDir)));
@@ -209,10 +219,10 @@ export function getTileComposite(tile: TrackTile | undefined): Composite | undef
                 vec(fromHalfWidth, radius),
             ]));
             bodies.push(polyBody([
-                vec(radius * sqrt2, 0),
-                vec(radius * sqrt2 + thickness / sqrt2, 0 + thickness / sqrt2),
-                vec(0 + thickness / sqrt2, radius * sqrt2 + thickness / sqrt2),
-                vec(0, radius * sqrt2),
+                vec(radius * SQRT2, 0),
+                vec(radius * SQRT2 + thickness / SQRT2, 0 + thickness / SQRT2),
+                vec(0 + thickness / SQRT2, radius * SQRT2 + thickness / SQRT2),
+                vec(0, radius * SQRT2),
             ]));
             bodies.push(polyBody([
                 vec(-radius, radius),
@@ -221,10 +231,10 @@ export function getTileComposite(tile: TrackTile | undefined): Composite | undef
                 vec(-radius, radius + thickness),
             ]));
             bodies.push(polyBody([
-                vec(-radius * sqrt2 - thickness / sqrt2, 0 + thickness / sqrt2),
-                vec(-radius * sqrt2, 0),
-                vec(0, radius * sqrt2),
-                vec(0 - thickness / sqrt2, radius * sqrt2 + thickness / sqrt2),
+                vec(-radius * SQRT2 - thickness / SQRT2, 0 + thickness / SQRT2),
+                vec(-radius * SQRT2, 0),
+                vec(0, radius * SQRT2),
+                vec(0 - thickness / SQRT2, radius * SQRT2 + thickness / SQRT2),
             ]));
             bodies.push(polyBody([
                 vec(-fromHalfWidth, -halfSize - fromBackup),
@@ -261,8 +271,8 @@ export function getTileComposite(tile: TrackTile | undefined): Composite | undef
                 vec(c[0] - radius + thickness, c[1]),
                 vec(c[0], c[1] + radius - thickness),
                 vec(c[0], c[1] + radius),
-                vec(c[0] - radius * sin30, c[1] + radius * cos30),
-                vec(c[0] - radius * cos30, c[1] + radius * sin30),
+                vec(c[0] - radius * SIN30, c[1] + radius * COS30),
+                vec(c[0] - radius * COS30, c[1] + radius * SIN30),
             ]));
             if (toExtend > 0 || toBackup > 0) {
                 bodies.push(polyBody([
@@ -290,18 +300,18 @@ export function getTileComposite(tile: TrackTile | undefined): Composite | undef
             bodies.push(polyBody([
                 vec(c[0] + radius, c[1]),
                 vec(c[0] + radius + thickness, c[1]),
-                vec(c[0] + rt * cos30 + thickness, c[1] + rt * sin30 + thickness),
-                vec(c[0] + rt * cos30, c[1] + rt * sin30),
+                vec(c[0] + rt * COS30 + thickness, c[1] + rt * SIN30 + thickness),
+                vec(c[0] + rt * COS30, c[1] + rt * SIN30),
             ]));
             bodies.push(polyBody([
-                vec(c[0] + rt * cos30, c[1] + rt * sin30),
-                vec(c[0] + rt * cos30 + thickness, c[1] + rt * sin30 + thickness),
-                vec(c[0] + rt * sin30 + thickness, c[1] + rt * cos30 + thickness),
-                vec(c[0] + rt * sin30, c[1] + rt * cos30),
+                vec(c[0] + rt * COS30, c[1] + rt * SIN30),
+                vec(c[0] + rt * COS30 + thickness, c[1] + rt * SIN30 + thickness),
+                vec(c[0] + rt * SIN30 + thickness, c[1] + rt * COS30 + thickness),
+                vec(c[0] + rt * SIN30, c[1] + rt * COS30),
             ]));
             bodies.push(polyBody([
-                vec(c[0] + rt * sin30, c[1] + rt * cos30),
-                vec(c[0] + rt * sin30 + thickness, c[1] + rt * cos30 + thickness),
+                vec(c[0] + rt * SIN30, c[1] + rt * COS30),
+                vec(c[0] + rt * SIN30 + thickness, c[1] + rt * COS30 + thickness),
                 vec(c[0], c[1] + radius + thickness),
                 vec(c[0], c[1] + radius),
             ]));
@@ -315,31 +325,54 @@ export function getTileComposite(tile: TrackTile | undefined): Composite | undef
             }
         } else if (turn === Turn.L_45) {
             // slight left turn
+            const radius = 2 * (halfSize - Math.max(fromHalfWidth, toHalfWidth));
             bodies.push(polyBody([
                 vec(fromHalfWidth, -halfSize - fromBackup),
                 vec(fromHalfWidth + thickness, -halfSize - fromBackup),
-                vec(fromHalfWidth + thickness, fromHalfWidth - sqrt2 * toHalfWidth - thickness),
-                vec(fromHalfWidth, fromHalfWidth - sqrt2 * toHalfWidth),
+                vec(fromHalfWidth + thickness, fromHalfWidth - SQRT2 * toHalfWidth - TAN22_5 * radius),
+                vec(fromHalfWidth, fromHalfWidth - SQRT2 * toHalfWidth - TAN22_5 * radius),
+            ]));
+            const c = [fromHalfWidth + radius, fromHalfWidth - SQRT2 * toHalfWidth - TAN22_5 * radius];
+            bodies.push(polyBody([
+                vec(c[0] - radius, c[1]),
+                vec(c[0] - radius + thickness, c[1]),
+                vec(c[0] - (radius - thickness) / SQRT2, c[1] + (radius - thickness) / SQRT2),
+                vec(c[0] - radius / SQRT2, c[1] + radius / SQRT2),
+                vec(c[0] - radius * COS22_5, c[1] + radius * SIN22_5),
             ]));
             bodies.push(polyBody([
-                vec(fromHalfWidth, fromHalfWidth - sqrt2 * toHalfWidth),
-                vec(fromHalfWidth + thickness, fromHalfWidth - sqrt2 * toHalfWidth - thickness),
-                vec((halfSize + toHalfWidth + toBackup + thickness) / sqrt2, (halfSize - toHalfWidth + toBackup - thickness) / sqrt2),
-                vec((halfSize + toHalfWidth + toBackup) / sqrt2, (halfSize - toHalfWidth + toBackup) / sqrt2),
+                vec(fromHalfWidth + TAN22_5 * radius / SQRT2, fromHalfWidth - SQRT2 * toHalfWidth + TAN22_5 * radius / SQRT2),
+                vec(fromHalfWidth + TAN22_5 * radius / SQRT2 + thickness / SQRT2, fromHalfWidth - SQRT2 * toHalfWidth + TAN22_5 * radius / SQRT2 - thickness / SQRT2),
+                vec((halfSize + toHalfWidth + toBackup + thickness) / SQRT2, (halfSize - toHalfWidth + toBackup - thickness) / SQRT2),
+                vec((halfSize + toHalfWidth + toBackup) / SQRT2, (halfSize - toHalfWidth + toBackup) / SQRT2),
             ]));
         } else if (turn === Turn.R_45) {
             // slight right turn
+            const radius = 2 * (halfSize - Math.max(fromHalfWidth, toHalfWidth));
             bodies.push(polyBody([
                 vec(fromHalfWidth, -halfSize - fromBackup),
                 vec(fromHalfWidth + thickness, -halfSize - fromBackup),
-                vec(fromHalfWidth + thickness, -fromHalfWidth + sqrt2 * toHalfWidth + thickness),
-                vec(fromHalfWidth, -fromHalfWidth + sqrt2 * toHalfWidth),
+                vec(fromHalfWidth + thickness, -fromHalfWidth + SQRT2 * toHalfWidth - TAN22_5 * radius),
+                vec(fromHalfWidth, -fromHalfWidth + SQRT2 * toHalfWidth - TAN22_5 * radius),
+            ]));
+            const c = [fromHalfWidth - radius, -fromHalfWidth + SQRT2 * toHalfWidth - TAN22_5 * radius];
+            bodies.push(polyBody([
+                vec(c[0] + radius, c[1]),
+                vec(c[0] + radius + thickness, c[1]),
+                vec(c[0] + (radius + thickness) * COS22_5, c[1] + (radius + thickness) * SIN22_5),
+                vec(c[0] + radius * COS22_5, c[1] + radius * SIN22_5),
             ]));
             bodies.push(polyBody([
-                vec(fromHalfWidth, -fromHalfWidth + sqrt2 * toHalfWidth),
-                vec(fromHalfWidth + thickness, -fromHalfWidth + sqrt2 * toHalfWidth + thickness),
-                vec((-halfSize + toHalfWidth - toBackup + thickness) / sqrt2, (halfSize + toHalfWidth + toBackup + thickness) / sqrt2),
-                vec((-halfSize + toHalfWidth - toBackup) / sqrt2, (halfSize + toHalfWidth + toBackup) / sqrt2),
+                vec(c[0] + radius * COS22_5, c[1] + radius * SIN22_5),
+                vec(c[0] + (radius + thickness) * COS22_5, c[1] + (radius + thickness) * SIN22_5),
+                vec(c[0] + (radius + thickness) / SQRT2, c[1] + (radius + thickness) / SQRT2),
+                vec(c[0] + radius / SQRT2, c[1] + radius / SQRT2),
+            ]));
+            bodies.push(polyBody([
+                vec(fromHalfWidth - TAN22_5 * radius / SQRT2, -fromHalfWidth + SQRT2 * toHalfWidth + TAN22_5 * radius / SQRT2),
+                vec(fromHalfWidth - TAN22_5 * radius / SQRT2 + thickness / SQRT2, -fromHalfWidth + SQRT2 * toHalfWidth + TAN22_5 * radius / SQRT2 + thickness / SQRT2),
+                vec((-halfSize + toHalfWidth - toBackup + thickness) / SQRT2, (halfSize + toHalfWidth + toBackup + thickness) / SQRT2),
+                vec((-halfSize + toHalfWidth - toBackup) / SQRT2, (halfSize + toHalfWidth + toBackup) / SQRT2),
             ]));
         } else {
             throw new Error('unimplemented turn ' + turnToString(turn));
