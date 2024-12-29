@@ -13,6 +13,12 @@ export type RaceUiOptions = {
     wireframe?: boolean;
 };
 
+function timeToStr(time: number) {
+    const mm = Math.floor(time / 60);
+    const ss = (time - mm * 60).toFixed(1);
+    return `${String(mm).padStart(2, '0')}:${String(ss).padStart(4, '0')}`;
+}
+
 export class RaceUi {
     readonly race: Race;
 
@@ -164,18 +170,35 @@ export class RaceUi {
     }
 
     tick(sec: number) {
-        let expired = 0;
-        for (const cloud of this._clouds) {
-            cloud.tick(sec);
-            if (cloud.expired) {
-                if (cloud.element.parentNode) {
-                    this._airLayer.removeChild(cloud.element);
+        {
+            let expired = 0;
+            for (const cloud of this._clouds) {
+                cloud.tick(sec);
+                if (cloud.expired) {
+                    if (cloud.element.parentNode) {
+                        this._airLayer.removeChild(cloud.element);
+                    }
+                    expired ++;
                 }
-                expired ++;
+            }
+            if (expired > 20) {
+                filterInPlace(this._clouds, cloud => !cloud.expired);
             }
         }
-        if (expired > 20) {
-            filterInPlace(this._clouds, cloud => !cloud.expired);
+        {
+            let expired = 0;
+            for (const mark of this._marks) {
+                mark.tick(sec);
+                if (mark.expired) {
+                    if (mark.element.parentNode) {
+                        this._markLayer.removeChild(mark.element);
+                    }
+                    expired ++;
+                }
+            }
+            if (expired > 20) {
+                filterInPlace(this._marks, mark => !mark.expired);
+            }
         }
         for (const carUi of this._carUis) {
             carUi.tick(sec)
@@ -208,9 +231,9 @@ export class RaceUi {
         }
         if (this.race.state !== 'countdown') {
             if (player.place) {
-                this._statusDiv.textContent = `#${player.place}`;
+                this._statusDiv.textContent = `#${player.place} ${timeToStr(player.finishTime)}`;
             } else {
-                this._statusDiv.textContent = `${player.lap}/${this.race.laps}`;
+                this._statusDiv.textContent = `${player.lap}/${this.race.laps} ${timeToStr(this.race.time)}`;
             }
         }
     }

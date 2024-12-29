@@ -29,6 +29,7 @@ export class Race {
     private _state: RaceState = 'countdown';
     private _countdownSeconds = 3;
     private _carsPlaced = 0;
+    private _time = 0;
 
     constructor(track: Track, cars: RaceCar[], laps: number) {
         this.track = track;
@@ -63,6 +64,10 @@ export class Race {
         return this._cars;
     }
 
+    get time() {
+        return this._time;
+    }
+
     getCheckpointSensor(index: number) {
         return this._checkpointSensors[index];
     }
@@ -73,6 +78,7 @@ export class Race {
 
     tick(sec: number) {
         if (this._state === 'go') {
+            this._time += sec;
             this.player.go(getInputDirection());
             this.player.tick(sec);
             for (const ai of this._ais) {

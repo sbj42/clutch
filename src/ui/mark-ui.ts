@@ -2,6 +2,8 @@ import { Vector } from "matter-js";
 import { makeSvg, makeSvgPolyline } from "../util/svg";
 
 const MINIMUM_DISTANCE = 10;
+const FADE_START = 25;
+const DURATION = 30;
 
 export class MarkUi {
     readonly element: SVGElement;
@@ -12,6 +14,7 @@ export class MarkUi {
     private _max = Vector.create(0, 0);
     private _changed = false;
     private _path: SVGPolylineElement;
+    private _time = 0;
 
     constructor(stroke: string, strokeWidth: number) {
         this._strokeWidth = strokeWidth;
@@ -38,7 +41,16 @@ export class MarkUi {
         this._changed = true;
     }
 
+    get expired() {
+        return this._time > DURATION;
+    }
+
+    tick(sec: number) {
+        this._time += sec;
+    }
+
     update() {
+        this.element.style.setProperty('opacity', String(1 - (Math.max(FADE_START, this._time) - FADE_START) / (DURATION - FADE_START)));
         if (!this._changed) {
             return;
         }

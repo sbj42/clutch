@@ -13,6 +13,7 @@ export class Car {
 
     private _lap = 0;
     private _place = 0;
+    private _finishTime = 0;
     private _nextCheckpoint = 0;
 
     private _desiredAngle: number | undefined;
@@ -43,6 +44,10 @@ export class Car {
 
     get place() {
         return this._place;
+    }
+
+    get finishTime() {
+        return this._finishTime;
     }
 
     get nextCheckpoint() {
@@ -124,35 +129,6 @@ export class Car {
         if (Math.abs(sideways) > DRIFT_ANGLE_DIFF && this.body.speed > DRIFT_SPEED * MAX_SPEED) {
             this._drift = true;
         }
-        // const backCenter = Vector.add(this.body.position, Vector.rotate(Vector.create(-SIZE.x * 0.4, 0), this.body.angle));
-        // if (Math.random() < 0.08 + 0.1 * skids) {
-        //     const back = Vector.mult(Vector.rotate(Vector.create(-1, 0), this.body.angle), MAX_SPEED / 5);
-        //     new Cloud(this.view, backCenter, Vector.add(this.body.velocity, back));
-        // }
-        // if (skids >= 2) {
-        //     const backLeftTire = Vector.add(this.body.position, Vector.rotate(Vector.create(-SIZE.x * 0.4, -SIZE.y * 0.35), this.body.angle));
-        //     this.trailBackLeft ??= new Trail(this.view, 3, 'black');
-        //     this.trailBackLeft.elem.style.setProperty('opacity', '0.25');
-        //     this.trailBackLeft.add(backLeftTire);
-        //     const backRightTire = Vector.add(this.body.position, Vector.rotate(Vector.create(-SIZE.x * 0.4, SIZE.y * 0.35), this.body.angle));
-        //     this.trailBackRight ??= new Trail(this.view, 3, 'black');
-        //     this.trailBackRight.elem.style.setProperty('opacity', '0.25');
-        //     this.trailBackRight.add(backRightTire);
-        // } else {
-        //     this.trailBackLeft = this.trailBackRight = undefined;
-        // }
-        // if (skids >= 4) {
-        //     const frontLeftTire = Vector.add(this.body.position, Vector.rotate(Vector.create(SIZE.x * 0.4, -SIZE.y * 0.35), this.body.angle));
-        //     this.trailFrontLeft ??= new Trail(this.view, 3, 'black');
-        //     this.trailFrontLeft.elem.style.setProperty('opacity', '0.25');
-        //     this.trailFrontLeft.add(frontLeftTire);
-        //     const frontRightTire = Vector.add(this.body.position, Vector.rotate(Vector.create(SIZE.x * 0.4, SIZE.y * 0.35), this.body.angle));
-        //     this.trailFrontRight ??= new Trail(this.view, 3, 'black');
-        //     this.trailFrontRight.elem.style.setProperty('opacity', '0.25');
-        //     this.trailFrontRight.add(frontRightTire);
-        // } else {
-        //     this.trailFrontLeft = this.trailFrontRight = undefined;
-        // }
     }
 
     private _checkCheckpoint() {
@@ -165,6 +141,7 @@ export class Car {
                 this._lap ++;
                 if (this._lap > this.race.laps) {
                     this._place = this.race.claimPlace();
+                    this._finishTime = this.race.time;
                 }
             }
             this._nextCheckpoint = (this._nextCheckpoint + 1) % this.race.track.checkpoints.length;
