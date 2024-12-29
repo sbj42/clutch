@@ -1,6 +1,6 @@
 import { Vector } from "matter-js";
-import type { Car } from "../game/car";
-import { Race } from "../game/race";
+import type { Car } from "../race/car";
+import { Race } from "../race/race";
 import { TILE_SIZE } from "../track/tile";
 import { Offset } from "tiled-geometry";
 

@@ -1,5 +1,5 @@
 import { getTileSvg } from "../track/tile-render";
-import { Race } from "../game/race";
+import { Race } from "../race/race";
 import { Size } from "tiled-geometry";
 import { TILE_SIZE } from "../track/tile";
 import { CarUi } from "./car-ui";
@@ -25,21 +25,21 @@ export class RaceUi {
 
     private readonly _wireframe: boolean;
 
-    private readonly _mainDiv: HTMLElement;
-    private readonly _trackLayer: HTMLElement;
-    private readonly _checkpointLayer: HTMLElement;
-    private readonly _markLayer: HTMLElement;
-    private readonly _thingLayer: HTMLElement;
-    private readonly _airLayer: HTMLElement;
+    private readonly _mainDiv = this._makeLayer('main');
+    private readonly _trackLayer = this._makeLayer('track');
+    private readonly _checkpointLayer = this._makeLayer('checkpoints');
+    private readonly _markLayer = this._makeLayer('marks');
+    private readonly _thingLayer = this._makeLayer('things');
+    private readonly _airLayer = this._makeLayer('air');
 
     private readonly _statusDiv: HTMLElement;
     private readonly _countdownDiv: HTMLElement;
 
     private readonly _miniScale: number;
     private readonly _miniDiv: HTMLElement;
-    private readonly _miniTrackLayer: HTMLElement;
-    private readonly _miniCheckpointLayer: HTMLElement;
-    private readonly _miniThingLayer: HTMLElement;
+    private readonly _miniTrackLayer = this._makeLayer('minitrack');
+    private readonly _miniCheckpointLayer = this._makeLayer('minicheckpoints');
+    private readonly _miniThingLayer = this._makeLayer('minithings');
 
     private readonly _carUis: CarUi[] = [];
     private readonly _marks: MarkUi[] = [];
@@ -52,16 +52,10 @@ export class RaceUi {
         this._wireframe = options?.wireframe ?? false;
         const track = race.track;
 
-        elem.style.setProperty('background-color', 'rgb(29, 29, 29)');
-        elem.style.setProperty('font-family', 'sans-serif');
-        elem.innerHTML = '';
-        this._mainDiv = this._makeLayer('main');
         this._mainDiv.style.setProperty('inset', '0');
         elem.appendChild(this._mainDiv);
 
-        this._trackLayer = this._makeLayer('track');
         this._mainDiv.appendChild(this._trackLayer);
-        this._checkpointLayer = this._makeLayer('checkpoints');
         this._mainDiv.appendChild(this._checkpointLayer);
 
         for (const offset of new Size().copyFrom(track.size).offsets()) {
@@ -75,13 +69,10 @@ export class RaceUi {
             }
         }
 
-        this._markLayer = this._makeLayer('marks');
         this._mainDiv.appendChild(this._markLayer);
 
-        this._thingLayer = this._makeLayer('things');
         this._mainDiv.appendChild(this._thingLayer);
 
-        this._airLayer = this._makeLayer('air');
         this._mainDiv.appendChild(this._airLayer);
 
         this._statusDiv = this._makeLayer('status');
@@ -111,10 +102,8 @@ export class RaceUi {
         this._miniDiv.style.setProperty('border', '1px solid grey');
         elem.appendChild(this._miniDiv);
 
-        this._miniTrackLayer = this._makeLayer('minitrack');
         this._miniTrackLayer.style.setProperty('scale', String(this._miniScale));
         this._miniDiv.appendChild(this._miniTrackLayer);
-        this._miniCheckpointLayer = this._makeLayer('minicheckpoints');
         this._miniDiv.appendChild(this._miniCheckpointLayer);
 
         for (const offset of new Size().copyFrom(track.size).offsets()) {
@@ -128,7 +117,6 @@ export class RaceUi {
             }
         }
 
-        this._miniThingLayer = this._makeLayer('minithings');
         this._miniDiv.appendChild(this._miniThingLayer);
 
         for (const car of this.race.cars) {

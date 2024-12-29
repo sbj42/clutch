@@ -1,6 +1,6 @@
 import { ImageSet } from "./image-set";
-import { Car } from "../game/car";
-import { CarType } from "../game/car-type";
+import { Car } from "../race/car";
+import { CarType } from "../race/car-type";
 import { Size } from "tiled-geometry";
 import { Vector } from "matter-js";
 import { CloudUi } from "./cloud-ui";
@@ -61,8 +61,8 @@ export class CarUi {
         this.miniElement = document.createElement('div');
         this.miniElement.style.setProperty('position', 'absolute');
         this.miniElement.style.setProperty('background-color', getCarColor(car.type));
-        this.miniElement.style.setProperty('width', '2px');
-        this.miniElement.style.setProperty('height', '2px');
+        this.miniElement.style.setProperty('width', '3px');
+        this.miniElement.style.setProperty('height', '3px');
     }
 
     tick(sec: number) {
