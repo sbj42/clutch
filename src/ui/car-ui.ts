@@ -27,7 +27,7 @@ function getCarColor(type: CarType) {
 }
 
 const EXHAUST_TICK = 0.035;
-const EXHAUST_CHANCE_IDLE = 0.02;
+const EXHAUST_CHANCE_IDLE = 0.015;
 const EXHAUST_CHANCE_NORMAL = 0.2;
 const EXHAUST_CHANCE_BURNOUT = 1;
 const EXHAUST_CHANCE_DRIFT = 1;
