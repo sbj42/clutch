@@ -1,5 +1,4 @@
-import { getStandardCarType } from "../race/car-type";
-import { Race } from "../race/race";
+import { Difficulty, Race } from "../race/race";
 import { Track } from "../track/track";
 import { RaceUi } from "./race-ui";
 import { titleUi } from "./game-title-ui";
@@ -74,7 +73,7 @@ export class GameUi {
         setupUi(this, this._trackLayer);
     }
 
-    doRace(track: Track) {
+    doRace(track: Track, difficulty: Difficulty) {
         this._state = 'race';
         this._stopRace();
         this._raceLayer.innerHTML = '';
@@ -88,45 +87,9 @@ export class GameUi {
             { opacity: 1 },
         ], { duration: 400 });
 
-        const race = new Race(track, [
-            { type: getStandardCarType(0), ai: undefined },
-            { type: getStandardCarType(1), ai: { speed: 0.85 } },
-            { type: getStandardCarType(2), ai: { speed: 0.9 } },
-            { type: getStandardCarType(3), ai: { speed: 0.95 } },
-            { type: getStandardCarType(4), ai: { speed: 1.0 } },
-        ], 3);
-        const raceUi = new RaceUi(this._raceLayer, race, { wireframe: this._wireframe });
-        this.raceUi = raceUi
-        
-        const tick = (sec: number) => {
-            if (this._paused) {
-                return;
-            }
-            race.tick(sec);
-            if (this.raceUi) {
-                this.raceUi.tick(sec);
-                this.raceUi.update();
-            }
-        };
-        
-        let lastTime = -1;
-        const rafCallback = (time: number) => {
-            if (this._state !== 'race' || this.raceUi !== raceUi) {
-                return;
-            }
-            if (lastTime < 0) {
-                lastTime = time;
-            } else {
-                try {
-                    tick(Math.min(time - lastTime, 16.666) / 1000);
-                } catch (e) {
-                    console.error(e);
-                }
-                lastTime = time;
-            }
-            requestAnimationFrame(rafCallback);
-        };
-        requestAnimationFrame(rafCallback);
+        const race = new Race(track, 3, difficulty);
+
+        this._raceLoop(race);
     }
 
     doPause(pause: boolean) {
@@ -165,6 +128,40 @@ export class GameUi {
         this.raceUi?.destroy();
         this.raceUi = undefined;
         this.doPause(false);
+    }
+
+    private _raceLoop(race: Race) {
+        const raceUi = new RaceUi(this._raceLayer, race, { wireframe: this._wireframe });
+        this.raceUi = raceUi
+        const tick = (sec: number) => {
+            if (this._paused) {
+                return;
+            }
+            raceUi.race.tick(sec);
+            if (this.raceUi) {
+                this.raceUi.tick(sec);
+                this.raceUi.update();
+            }
+        };
+        
+        let lastTime = -1;
+        const rafCallback = (time: number) => {
+            if (this._state !== 'race' || this.raceUi !== raceUi) {
+                return;
+            }
+            if (lastTime < 0) {
+                lastTime = time;
+            } else {
+                try {
+                    tick(Math.min(time - lastTime, 16.666) / 1000);
+                } catch (e) {
+                    console.error(e);
+                }
+                lastTime = time;
+            }
+            requestAnimationFrame(rafCallback);
+        };
+        requestAnimationFrame(rafCallback);
     }
 
     //#endregion

@@ -7,7 +7,7 @@ import { Ai, AiType } from "../ai/ai";
 import { TILE_SIZE } from "../track/tile";
 import { getCheckpointSensor, getStartGrid } from "../track/checkpoint-render";
 import { getInputDirection } from "../ui/input";
-import { CarType, getCarCollisionSize } from "./car-type";
+import { CarType, getAiCarType, getCarCollisionSize, getPlayerCarType } from "./car-type";
 import { Checkpoint } from "../track/checkpoint";
 import { Obstacle } from "./obstacle";
 
@@ -18,10 +18,13 @@ export type RaceCar = {
 
 export type RaceState = 'countdown' | 'go' | 'done';
 
+export type Difficulty = 'easy' | 'normal' | 'hard';
+
 export class Race {
     readonly track: Track;
     readonly player: Car;
     readonly laps: number;
+    readonly difficulty: Difficulty;
     
     private readonly _engine: Engine;
     private readonly _cars: Car[] = [];
@@ -35,9 +38,10 @@ export class Race {
     private _carsPlaced = 0;
     private _time = 0;
 
-    constructor(track: Track, cars: RaceCar[], laps: number) {
+    constructor(track: Track, laps: number, difficulty: Difficulty) {
         this.track = track;
         this.laps = laps;
+        this.difficulty = difficulty;
         this._engine = Engine.create({
             gravity: {
                 scale: 0,
@@ -46,6 +50,37 @@ export class Race {
         this._state = 'countdown';
         this._startSensor = this._makeCheckpointSensor(this.track.start);
         this._addTiles();
+
+        const cars: RaceCar[] = [];
+        switch (difficulty) {
+            case 'easy':
+                cars.push(
+                    { type: getPlayerCarType(0, difficulty), ai: undefined },
+                    { type: getAiCarType(1, difficulty, 0.9), ai: { } },
+                    { type: getAiCarType(2, difficulty, 0.95), ai: { } },
+                    { type: getAiCarType(3, difficulty, 1), ai: { } },
+                );
+                break;
+            case 'normal':
+                cars.push(
+                    { type: getAiCarType(1, difficulty, 0.85), ai: { } },
+                    { type: getAiCarType(2, difficulty, 0.9), ai: { } },
+                    { type: getPlayerCarType(0, difficulty), ai: undefined },
+                    { type: getAiCarType(3, difficulty, 0.95), ai: { } },
+                    { type: getAiCarType(4, difficulty, 1), ai: { } },
+                );
+                break;
+            case 'hard':
+                cars.push(
+                    { type: getAiCarType(1, difficulty, 0.92), ai: { } },
+                    { type: getAiCarType(2, difficulty, 0.94), ai: { } },
+                    { type: getAiCarType(3, difficulty, 0.96), ai: { } },
+                    { type: getAiCarType(4, difficulty, 0.98), ai: { } },
+                    { type: getAiCarType(5, difficulty, 1), ai: { } },
+                    { type: getPlayerCarType(0, difficulty), ai: undefined },
+                );
+                break;
+        }
         
         for (const c of cars) {
             const car = this._addCar(c.type);
@@ -156,7 +191,7 @@ export class Race {
             body = Bodies.rectangle(position.x, position.y, collisionSize.width, collisionSize.height, {
                 label: `car:${this._cars.length}`,
                 angle: grid.angle - Math.PI / 2,
-                friction: 1,
+                frictionAir: type.friction,
                 restitution: 0.4,
             });
             const collision = Query.collides(body, Composite.allBodies(this._engine.world))

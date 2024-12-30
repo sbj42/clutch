@@ -7,6 +7,7 @@ import { BACKGROUND_COLOR, BUTTON_DISABLED_COLOR, GameUi, GREEN_BUTTON_COLOR, ma
 import { getTileSvg } from "../track/tile-render";
 import { getCheckpointSvg } from "../track/checkpoint-render";
 import { Track } from "../track/track";
+import { Difficulty } from "../race/race";
 
 export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
     
@@ -22,7 +23,7 @@ export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
     ], { duration: 400 });
 
     const instruction = document.createElement('div');
-    instruction.textContent = 'CHOOSE A TRACK';
+    instruction.textContent = 'RACE SETUP';
     instruction.style.setProperty('text-align', 'center');
     instruction.style.setProperty('font-size', '60px');
     instruction.style.setProperty('font-style', 'italic');
@@ -44,16 +45,21 @@ export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
     listSide.style.setProperty('align-items', 'center');
     split.appendChild(listSide);
 
-    const select = document.createElement('select');
-    select.setAttribute('size', '10');
-    select.style.setProperty('background', 'inherit');
-    select.style.setProperty('color', 'inherit');
-    select.style.setProperty('font-family', 'inherit');
-    select.style.setProperty('font-size', '20px');
-    select.style.setProperty('scrollbar-color', `rgb(121, 58, 48) ${BACKGROUND_COLOR}`);
-    select.style.setProperty('overflow', 'auto');
-    select.style.setProperty('margin', '10px');
-    listSide.appendChild(select);
+    const trackLabel = document.createElement('div');
+    trackLabel.textContent = 'TRACK:';
+    trackLabel.style.setProperty('font-size', '30px');
+    listSide.appendChild(trackLabel);
+
+    const trackSelect = document.createElement('select');
+    trackSelect.setAttribute('size', '10');
+    trackSelect.style.setProperty('background', 'inherit');
+    trackSelect.style.setProperty('color', 'inherit');
+    trackSelect.style.setProperty('font-family', 'inherit');
+    trackSelect.style.setProperty('font-size', '20px');
+    trackSelect.style.setProperty('scrollbar-color', `rgb(121, 58, 48) ${BACKGROUND_COLOR}`);
+    trackSelect.style.setProperty('overflow', 'auto');
+    trackSelect.style.setProperty('margin', '10px');
+    listSide.appendChild(trackSelect);
 
     const tracks = [
         { name: 'Dogbone', track: DOGBONE },
@@ -64,19 +70,48 @@ export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
         const option = document.createElement('option');
         option.style.setProperty('padding', '3px 10px');
         option.textContent = track.name;
-        select.appendChild(option);
+        trackSelect.appendChild(option);
     }
 
     const go = () => {
-        const track = tracks[select.selectedIndex].track;
-        gameUi.doRace(track);
+        const track = tracks[trackSelect.selectedIndex].track;
+        const difficulty = difficulties[difficultySelect.selectedIndex].value;
+        gameUi.doRace(track, difficulty);
     }
 
-    select.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' && select.selectedIndex >= 0) {
+    trackSelect.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && trackSelect.selectedIndex >= 0) {
             go();
         }
     });
+
+    const difficultyLabel = document.createElement('div');
+    difficultyLabel.textContent = 'DIFFICULTY:';
+    difficultyLabel.style.setProperty('font-size', '30px');
+    listSide.appendChild(difficultyLabel);
+
+    const difficultySelect = document.createElement('select');
+    difficultySelect.style.setProperty('background', 'inherit');
+    difficultySelect.style.setProperty('color', 'inherit');
+    difficultySelect.style.setProperty('font-family', 'inherit');
+    difficultySelect.style.setProperty('font-size', '20px');
+    difficultySelect.style.setProperty('margin', '10px');
+    listSide.appendChild(difficultySelect);
+
+    const difficulties: { name: string, value: Difficulty }[] = [
+        { name: 'EASY', value: 'easy' },
+        { name: 'NORMAL', value: 'normal' },
+        { name: 'HARD', value: 'hard' },
+    ];
+    for (const difficulty of difficulties) {
+        const option = document.createElement('option');
+        option.style.setProperty('padding', '3px 10px');
+        option.style.setProperty('background', BACKGROUND_COLOR);
+        option.style.setProperty('color', 'white');
+        option.textContent = difficulty.name;
+        difficultySelect.appendChild(option);
+    }
+    difficultySelect.selectedIndex = 1;
 
     const goButton = makeButton(BUTTON_DISABLED_COLOR, 'GO', go);
     goButton.setAttribute('disabled', 'disabled');
@@ -95,18 +130,18 @@ export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
     const preview = document.createElement('div');
     previewSide.appendChild(preview);
 
-    select.addEventListener('change', () => {
+    trackSelect.addEventListener('change', () => {
         goButton.removeAttribute('disabled');
         goButton.style.setProperty('cursor', 'pointer');
         goButton.style.setProperty('background-color', GREEN_BUTTON_COLOR);
         goButton.style.setProperty('opacity', '1');
 
-        const track = tracks[select.selectedIndex].track;
+        const track = tracks[trackSelect.selectedIndex].track;
         preview.innerHTML = '';
         trackPreview(preview, track);
     });
 
-    select.focus();
+    trackSelect.focus();
 }
 
 function trackPreview(elem: HTMLElement, track: Track) {

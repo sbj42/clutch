@@ -5,7 +5,6 @@ import { TILE_SIZE } from "../track/tile";
 import { Offset } from "tiled-geometry";
 
 export type AiType = {
-    speed: number;
 }
 
 export class Ai {
@@ -49,7 +48,7 @@ export class Ai {
         if (this._nextTarget) {
             const targetPosition = Vector.create((this._nextTarget.x + 0.5) * TILE_SIZE, (this._nextTarget.y + 0.5) * TILE_SIZE);
             const targetDir = Vector.normalise(Vector.sub(targetPosition, this.car.body.position));
-            this.car.go(Vector.mult(targetDir, this.type.speed));
+            this.car.go(targetDir);
         } else {
             this.car.go(undefined);
         }

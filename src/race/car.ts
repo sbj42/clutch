@@ -5,20 +5,18 @@ import { CarType } from "./car-type";
 
 export type CarState = 'before-start' | 'racing' | 'finishing' | 'finished';
 
-// better, but need to fix ai first:
-// const ACCELERATION = 0.10;
-// const MAX_SPEED = 18;
-
-const ACCELERATION = 0.15;
-const MAX_SPEED = 15;
-// radians per second
-const TURN_SPEED = 2 * Math.PI;
 // when the car's speed is this much slower than desired, it skids
 const BURNOUT_SPEED_DIFF = 0.35;
 // when the car's angle is this much off from the travel angle, it drifts
 const DRIFT_ANGLE_DIFF = Math.PI / 3;
 // the car must be going this fast or else it's not drifting
 const DRIFT_SPEED = 0.4;
+
+export type CarSettings = {
+    acceleration: number;
+    maxSpeed: number;
+    turnSpeed: number;
+};
 
 export type Finished = {
     place: number;
@@ -29,7 +27,7 @@ export class Car {
     readonly index: number;
     readonly race: Race;
     readonly body: Body;
-    readonly type: CarType;
+    readonly type: Readonly<CarType>;
 
     private _lap = 0;
     private _finished?: Finished;
@@ -79,10 +77,6 @@ export class Car {
         return this._idle;
     }
 
-    get maxSpeed() {
-        return MAX_SPEED;
-    }
-
     get isPlayer() {
         return this === this.race.player;
     }
@@ -118,7 +112,7 @@ export class Car {
             } else if (targetAngle < this.body.angle - Math.PI) {
                 targetAngle += 2 * Math.PI;
             }
-            const turnSpeed = TURN_SPEED * sec;
+            const turnSpeed = this.type.turnSpeed * sec;
             if (Math.abs(angleDiff) < turnSpeed) {
                 Body.setAngle(this.body, targetAngle);
             } else {
@@ -127,14 +121,14 @@ export class Car {
         }
         let desiredSpeed = this._desiredSpeed;
         if (desiredSpeed !== undefined) {
-            const speedDiff = desiredSpeed - this.body.speed / MAX_SPEED;
+            const speedDiff = desiredSpeed - this.body.speed / this.type.maxSpeed;
             if (speedDiff > BURNOUT_SPEED_DIFF) {
                 this._burnout = true;
             }
-            const targetSpeed = Vector.mult(Vector.rotate(Vector.create(1, 0), this.body.angle), MAX_SPEED * desiredSpeed);
+            const targetSpeed = Vector.mult(Vector.rotate(Vector.create(1, 0), this.body.angle), this.type.maxSpeed * desiredSpeed);
             const toward = Vector.sub(targetSpeed, this.body.velocity);
             const mag = Vector.magnitude(toward);
-            const acceleration = ACCELERATION * sec;
+            const acceleration = this.type.acceleration * sec;
             if (mag < acceleration) {
                 Body.setVelocity(this.body, targetSpeed);
             } else {
@@ -147,7 +141,7 @@ export class Car {
         this._checkCheckpoint();
 
         const sideways = fixTurn(this.body.angle - Vector.angle(Vector.create(0, 0), this.body.velocity));
-        if (Math.abs(sideways) > DRIFT_ANGLE_DIFF && this.body.speed > DRIFT_SPEED * MAX_SPEED) {
+        if (Math.abs(sideways) > DRIFT_ANGLE_DIFF && this.body.speed > DRIFT_SPEED * this.type.maxSpeed) {
             this._drift = true;
         }
     }

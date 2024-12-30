@@ -44,7 +44,7 @@ export class CarAudio {
         const distance = Vector.magnitude(relativePosition);
         const doppler = -Vector.dot(Vector.normalise(relativePosition), body.velocity) / DOPPLER_MAX_SPEED;
 
-        const speed = this.car.body.speed / this.car.maxSpeed;
+        const speed = this.car.body.speed / this.car.type.maxSpeed;
         this._engine.rate(MIN_RATE + (MAX_RATE - MIN_RATE) * speed + this._delta + doppler * DOPPLER_EFFECT);
 
         const boost = this.car.isPlayer ? PLAYER_VOLUME_BOOST : 0;

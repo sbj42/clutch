@@ -27,7 +27,8 @@ export async function pauseUi(gameUi: GameUi, elem: HTMLElement) {
     const restartButton = makeButton(YELLOW_BUTTON_COLOR, 'RESTART', () => {
         gameUi.doPause(false);
         if (gameUi.raceUi) {
-            gameUi.doRace(gameUi.raceUi.race.track);
+            const lastRace = gameUi.raceUi.race;
+            gameUi.doRace(lastRace.track, lastRace.difficulty);
         }
     });
     menu.appendChild(restartButton);
