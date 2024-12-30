@@ -5,6 +5,10 @@ import { CarType } from "./car-type";
 
 export type CarState = 'before-start' | 'racing' | 'finishing' | 'finished';
 
+// better, but need to fix ai first:
+// const ACCELERATION = 0.10;
+// const MAX_SPEED = 18;
+
 const ACCELERATION = 0.15;
 const MAX_SPEED = 15;
 // radians per second

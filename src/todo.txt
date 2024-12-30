@@ -1,5 +1,15 @@
 ai should recalibrate next target if it gets knocked back
 obstacles
+  barricades
+  stopped cars
+  tire
+    (maybe a tire stack later)
+  water barrel
+    (maybe spills water later)
+hazards
+  speed bump - if moving fast, car "flies": shadow appears for a while and player loses control
+  oil - player controls direction but not velocity for a while
+  potholes - slow down car? add random angle change?
 reverse
 more cars
 night

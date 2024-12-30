@@ -70,7 +70,8 @@ export class TrackBuilder {
     }
 
     obstacle(type: string, x: number, y: number, angle: number): this {
-        x += this._offset.x
+        x += this._offset.x;
+        y += this._offset.y;
         this._obstacles.push({
             type,
             location: { x, y },

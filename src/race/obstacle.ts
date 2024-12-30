@@ -4,20 +4,23 @@ import { ObstacleInfo } from "../track/obstacle";
 import { TILE_SIZE } from "../track/tile";
 import { Size } from "tiled-geometry";
 
-export type ObstacleType = 'cone';
+export type ObstacleType = 'cone' | 'barrel';
 
 function _parseObstacleType(str: string): ObstacleType {
-    if (str === 'cone') {
+    if (str === 'cone' || str === 'barrel') {
         return str;
     }
     throw new Error('invalid obstacle type ' + str);
 }
 
 const CONE_COLLISION_SIZE = new Size(14, 14);
+const BARREL_COLLISION_SIZE = new Size(23, 23);
 
 export function getObstacleCollisionSize(type: ObstacleType) {
     switch (type) {
         case 'cone': return CONE_COLLISION_SIZE;
+        case 'barrel': return BARREL_COLLISION_SIZE;
+        default: throw new Error('invalid obstacle type ' + type);
     }
 }
 
@@ -35,7 +38,7 @@ export class Obstacle {
         this.body = Bodies.rectangle(info.location.x * TILE_SIZE, info.location.y * TILE_SIZE, size.width, size.height, {
             label: this.type,
             angle: info.angle,
-            frictionAir: 0.02,
+            frictionAir: 0.03,
             restitution: 0.8,
             density: 0.004,
         });

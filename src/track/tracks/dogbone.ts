@@ -11,17 +11,16 @@ import { TrackBuilder } from "../track-builder";
 
 export const DOGBONE = TrackBuilder.start(1, 0, Direction.EAST)
     .go(Direction.SOUTH)
-    .obstacle('cone', 0.5, 0.8, Math.random() * 2 * Math.PI)
-    .obstacle('cone', 0.55, 0.8, Math.random() * 2 * Math.PI)
-    .obstacle('cone', 0.5, 0.85, Math.random() * 2 * Math.PI)
-    .obstacle('cone', 0.55, 0.85, Math.random() * 2 * Math.PI)
-    .obstacle('cone', 0.5, 0.9, Math.random() * 2 * Math.PI)
     .trackWidth('narrow')
     .go(Direction.SOUTHEAST)
     .trackWidth('standard')
     .go(Direction.EAST)
     .checkpoint() // 1
-    .go(Direction.SOUTH, Direction.WEST, Direction.WEST)
+    .go(Direction.SOUTH)
+    .go(Direction.WEST)
+    .obstacle('barrel', 0.5, 0.3, Math.random() * 2 * Math.PI)
+    .obstacle('barrel', 0.45, 0.33, Math.random() * 2 * Math.PI)
+    .go(Direction.WEST)
     .checkpoint() // 2
     .go(Direction.NORTH)
     .trackWidth('narrow')
@@ -29,6 +28,11 @@ export const DOGBONE = TrackBuilder.start(1, 0, Direction.EAST)
     .trackWidth('standard')
     .go(Direction.WEST)
     .checkpoint() // 3
-    .go(Direction.NORTH, Direction.EAST, Direction.EAST)
+    .obstacle('cone', 0.72, 0, Math.random() * 2 * Math.PI)
+    .obstacle('cone', 0.68, 0.01, Math.random() * 2 * Math.PI)
+    .obstacle('cone', 0.64, 0.02, Math.random() * 2 * Math.PI)
+    .go(Direction.NORTH)
+    .go(Direction.EAST)
+    .go(Direction.EAST)
     .checkpoint() // *
     .toTrack();
