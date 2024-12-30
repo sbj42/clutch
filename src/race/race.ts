@@ -170,7 +170,7 @@ export class Race {
         if (!body) {
             throw new Error('failed to find start position');
         }
-        const car = new Car(this, body, type);
+        const car = new Car(this, this._cars.length, body, type);
         this._cars.push(car);
         Composite.add(this._engine.world, body);
         return car;

@@ -26,6 +26,7 @@ export type Finished = {
 }
 
 export class Car {
+    readonly index: number;
     readonly race: Race;
     readonly body: Body;
     readonly type: CarType;
@@ -41,7 +42,8 @@ export class Car {
     private _drift: boolean;
     private _idle: boolean;
 
-    constructor(race: Race, body: Body, type: CarType) {
+    constructor(race: Race, index: number, body: Body, type: CarType) {
+        this.index = index;
         this.race = race;
         this.body = body;
         this.type = type;
@@ -75,6 +77,14 @@ export class Car {
 
     get idle() {
         return this._idle;
+    }
+
+    get maxSpeed() {
+        return MAX_SPEED;
+    }
+
+    get isPlayer() {
+        return this === this.race.player;
     }
 
     go(direction?: Vector) {

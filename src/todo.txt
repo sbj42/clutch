@@ -1,4 +1,8 @@
 ai should recalibrate next target if it gets knocked back
+difficulty
+sound
+  crashes (vs car, vs barrier, vs obstacle)
+  drift/burnout
 obstacles
   barricades
   stopped cars

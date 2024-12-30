@@ -10,6 +10,7 @@ import { CheckpointUi } from "./checkpoint-ui";
 import type { MarkUi } from "./mark-ui";
 import { Checkpoint } from "../track/checkpoint";
 import { ObstacleUi } from "./obstacle-ui";
+import { RaceAudio } from "./race-audio";
 
 export type RaceUiOptions = {
     wireframe?: boolean;
@@ -23,6 +24,7 @@ function _timeToStr(time: number) {
 
 export class RaceUi {
     readonly race: Race;
+    readonly audio = new RaceAudio(this);
 
     private readonly _wireframe: boolean;
 
@@ -224,6 +226,10 @@ export class RaceUi {
                 this._statusDiv.textContent = `${player.lap}/${this.race.laps} ${_timeToStr(this.race.time)}`;
             }
         }
+    }
+
+    destroy() {
+        this.audio.destroy();
     }
 
     //#region Internal

@@ -6,6 +6,7 @@ import { Vector } from "matter-js";
 import { CloudUi } from "./cloud-ui";
 import type { RaceUi } from "./race-ui";
 import { MarkUi } from "./mark-ui";
+import { CarAudio } from "./car-audio";
 
 const STANDARD_SIZE = new Size().set(64, 32);
 const STANDARD_IMAGESOURCE = new URL(
@@ -38,6 +39,7 @@ const EXHAUST_COLOR = 'rgba(200, 200, 200, 0.08)';
 export class CarUi {
     readonly raceUi: RaceUi;
     readonly car: Car;
+    readonly audio: CarAudio;
     readonly element: HTMLElement;
     readonly miniElement: HTMLElement;
 
@@ -54,6 +56,7 @@ export class CarUi {
         this.raceUi = raceUi;
         this.car = car;
         this._miniScale = miniScale;
+        this.audio = new CarAudio(raceUi, car);
         this.element = getCarImageSet(car.type).getImage(car.type.imageIndex).makeElement();
         const carSize = getCarSize(this.car.type);
         this.element.style.setProperty('position', 'absolute');
@@ -66,6 +69,7 @@ export class CarUi {
     }
 
     tick(sec: number) {
+        this.audio.tick(sec);
         const body = this.car.body;
         const size = getCarSize(this.car.type);
         this._exhaustTime -= sec;
