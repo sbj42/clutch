@@ -14,9 +14,10 @@ import { getCheckpointSvg } from "../track/checkpoint-render";
 export type GameState = 'title' | 'track' | 'race';
 
 const TITLE_DURATION = 1000;
-const PLAY_BUTTON_COLOR = 'rgb(33, 129, 9)';
-const GO_BUTTON_COLOR = 'rgb(33, 129, 9)';
-const GO_BUTTON_DISABLED_COLOR = 'rgb(107, 119, 104)';
+const GREEN_BUTTON_COLOR = 'rgb(33, 129, 9)';
+const YELLOW_BUTTON_COLOR = 'rgb(129, 117, 9)';
+const RED_BUTTON_COLOR = 'rgb(129, 9, 9)';
+const BUTTON_DISABLED_COLOR = 'rgb(107, 119, 104)';
 
 export type GameUiOptions = {
     wireframe?: boolean;
@@ -34,6 +35,9 @@ export class GameUi {
     
     private _raceLayer = this._makeLayer('game-race');
     private _raceUi?: RaceUi;
+    private _paused = false;
+
+    private _pauseLayer = this._makeLayer('game-pause');
     
     constructor(elem: HTMLElement, options?: GameUiOptions) {
         this._elem = elem;
@@ -56,6 +60,12 @@ export class GameUi {
 
         this._raceLayer.style.setProperty('inset', '0');
 
+        this._pauseLayer.style.setProperty('inset', '0');
+        this._pauseLayer.style.setProperty('display', 'flex');
+        this._pauseLayer.style.setProperty('flex-direction', 'column');
+        this._pauseLayer.style.setProperty('justify-content', 'center');
+        this._pauseLayer.style.setProperty('align-items', 'center');
+
         this._doTitle();
 
         document.addEventListener('keydown', (event) => this._onKeydown(event));
@@ -76,7 +86,16 @@ export class GameUi {
 
     private _onKeydown(event: KeyboardEvent) {
         if (event.key === 'Escape') {
-            this._doTitle();
+            if (this._state === 'track') {
+                this._doTitle();
+            } else if (this._state === 'race') {
+                this._paused = !this._paused;
+                if (this._paused) {
+                    this._doPause(this._paused);
+                } else {
+                    this._pauseLayer.parentNode?.removeChild(this._pauseLayer);
+                }
+            }
         }
     }
 
@@ -103,24 +122,10 @@ export class GameUi {
         const optionsDiv = document.createElement('div');
         optionsDiv.style.setProperty('position', 'relative');
         optionsDiv.style.setProperty('height', '0');
-        const playButton = document.createElement('button');
-        playButton.textContent = 'PLAY';
-        playButton.style.setProperty('font-size', '30px');
-        playButton.style.setProperty('border', '1px solid rgb(255, 255, 255)');
-        playButton.style.setProperty('cursor', 'pointer');
-        playButton.style.setProperty('background-color', PLAY_BUTTON_COLOR);
-        playButton.style.setProperty('color', 'white');
-        playButton.style.setProperty('padding', '5px 20px');
-        playButton.style.setProperty('margin-top', '20px');
-        playButton.addEventListener('mouseenter', () => {
-            playButton.style.setProperty('filter', 'brightness(1.2)');
-        });
-        playButton.addEventListener('mouseleave', () => {
-            playButton.style.setProperty('filter', 'brightness(1)');
-        });
-        playButton.addEventListener('click', () => {
+        const playButton = this._makeButton(GREEN_BUTTON_COLOR, 'PLAY', () => {
             this._doTrack();
         });
+        playButton.style.setProperty('margin-top', '20px');
         optionsDiv.appendChild(playButton);
         this._titleLayer.appendChild(optionsDiv);
     }
@@ -176,24 +181,13 @@ export class GameUi {
             select.appendChild(option);
         }
 
-        const goButton = document.createElement('button');
-        goButton.textContent = 'GO';
+        const goButton = this._makeButton(BUTTON_DISABLED_COLOR, 'GO', () => {
+            const track = tracks[select.selectedIndex].track;
+            this._doRace(track);
+        });
         goButton.setAttribute('disabled', 'disabled');
         goButton.style.setProperty('opacity', '0.5');
-        goButton.style.setProperty('font-size', '30px');
-        goButton.style.setProperty('border', '1px solid rgb(255, 255, 255)');
-        goButton.style.setProperty('background-color', GO_BUTTON_DISABLED_COLOR);
-        goButton.style.setProperty('color', 'white');
-        goButton.style.setProperty('padding', '5px 20px');
         goButton.style.setProperty('margin-top', '20px');
-        goButton.addEventListener('mouseenter', () => {
-            if (!goButton.hasAttribute('disabled')) {
-                goButton.style.setProperty('filter', 'brightness(1.2)');
-            }
-        });
-        goButton.addEventListener('mouseleave', () => {
-            goButton.style.setProperty('filter', 'brightness(1)');
-        });
         listSide.appendChild(goButton);
 
         const previewSide = document.createElement('div');
@@ -210,7 +204,7 @@ export class GameUi {
         select.addEventListener('change', () => {
             goButton.removeAttribute('disabled');
             goButton.style.setProperty('cursor', 'pointer');
-            goButton.style.setProperty('background-color', GO_BUTTON_COLOR);
+            goButton.style.setProperty('background-color', GREEN_BUTTON_COLOR);
             goButton.style.setProperty('opacity', '1');
             const track = tracks[select.selectedIndex].track;
             preview.innerHTML = '';
@@ -242,10 +236,6 @@ export class GameUi {
             startSvg.style.setProperty('top', `${TILE_SIZE * (startOffset.y - 0.5)}px`);
             previewInner.appendChild(startSvg);
         });
-        goButton.addEventListener('click', () => {
-            const track = tracks[select.selectedIndex].track;
-            this._doRace(track);
-        });
 
     }
 
@@ -271,6 +261,9 @@ export class GameUi {
         this._raceUi = raceUi
         
         const tick = (sec: number) => {
+            if (this._paused) {
+                return;
+            }
             race.tick(sec);
             if (this._raceUi) {
                 this._raceUi.tick(sec);
@@ -296,6 +289,66 @@ export class GameUi {
             requestAnimationFrame(rafCallback);
         };
         requestAnimationFrame(rafCallback);
+    }
+
+    private _doPause(pause: boolean) {
+        if (!this._paused) {
+            this._pauseLayer.parentNode?.removeChild(this._pauseLayer);
+            return;
+        }
+        this._pauseLayer.innerHTML = '';
+        this._elem.appendChild(this._pauseLayer);
+        const menu = document.createElement('div');
+        menu.style.setProperty('display', 'flex');
+        menu.style.setProperty('flex-direction', 'row');
+        menu.style.setProperty('gap', '20px');
+        menu.style.setProperty('background-color', 'rgb(0, 0, 0)');
+        menu.style.setProperty('border', '2px solid rgb(49, 49, 49)');
+        menu.style.setProperty('padding', '20px');
+        menu.style.setProperty('box-shadow', '6px 6px 4px rgba(0, 0, 0, 0.5)');
+        this._pauseLayer.appendChild(menu);
+
+        const resumeButton = this._makeButton(GREEN_BUTTON_COLOR, 'RESUME', () => {
+            this._paused = false;
+            this._doPause(this._paused);
+        });
+        menu.appendChild(resumeButton);
+
+        const restartButton = this._makeButton(YELLOW_BUTTON_COLOR, 'RESTART', () => {
+            this._paused = false;
+            if (this._raceUi) {
+                this._doRace(this._raceUi.race.track);
+            }
+        });
+        menu.appendChild(restartButton);
+
+        const quitButton = this._makeButton(RED_BUTTON_COLOR, 'QUIT', () => {
+            this._paused = false;
+            this._doTitle();
+        });
+        menu.appendChild(quitButton);
+    }
+
+    private _makeButton(color: string, text: string, callback: () => void) {
+        const button = document.createElement('button');
+        button.textContent = text;
+        button.style.setProperty('font-size', '30px');
+        button.style.setProperty('border', '1px solid rgb(255, 255, 255)');
+        button.style.setProperty('background-color', color);
+        button.style.setProperty('color', 'white');
+        button.style.setProperty('padding', '5px 20px');
+        button.addEventListener('mouseenter', () => {
+            if (!button.hasAttribute('disabled')) {
+                button.style.setProperty('filter', 'brightness(1.2)');
+            }
+        });
+        button.addEventListener('mouseleave', () => {
+            button.style.setProperty('filter', 'brightness(1)');
+        });
+        button.addEventListener('click', () => {
+            callback();
+        });
+        return button;
     }
 
     //#endregion
