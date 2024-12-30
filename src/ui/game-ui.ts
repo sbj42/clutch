@@ -8,6 +8,8 @@ import { DOGBONE } from "../track/tracks/dogbone";
 import { delay } from "../util/delay";
 import { RaceUi } from "./race-ui";
 import { getTileSvg } from "../track/tile-render";
+import { TWISTER } from "../track/tracks/twister";
+import { getCheckpointSvg } from "../track/checkpoint-render";
 
 export type GameState = 'title' | 'track' | 'race';
 
@@ -165,7 +167,8 @@ export class GameUi {
 
         const tracks = [
             { name: 'Dogbone', track: DOGBONE },
-            { name: 'Caterpillar', track: CATERPILLAR}
+            { name: 'Caterpillar', track: CATERPILLAR},
+            { name: 'Twister', track: TWISTER},
         ];
         for (const track of tracks) {
             const option = document.createElement('option');
@@ -231,6 +234,13 @@ export class GameUi {
                     previewInner.appendChild(svg);
                 }
             }
+            const start = track.start;
+            const startOffset = start.tile.offset;
+            const startSvg = getCheckpointSvg(document, start, 'start');
+            startSvg.style.setProperty('position', 'absolute');
+            startSvg.style.setProperty('left', `${TILE_SIZE * (startOffset.x - 0.5)}px`);
+            startSvg.style.setProperty('top', `${TILE_SIZE * (startOffset.y - 0.5)}px`);
+            previewInner.appendChild(startSvg);
         });
         goButton.addEventListener('click', () => {
             const track = tracks[select.selectedIndex].track;

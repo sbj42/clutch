@@ -65,7 +65,7 @@ function makeCheckerboardPattern(doc: Document) {
     return pattern;
 }
 
-export function getCheckpointSvg(doc: Document, checkpoint: Checkpoint, state: CheckpointState, options: CheckpointSvgOptions): SVGElement {
+export function getCheckpointSvg(doc: Document, checkpoint: Checkpoint, state: CheckpointState, options?: CheckpointSvgOptions): SVGElement {
     const wireframe = options?.wireframe ?? false;
     const size = TILE_SIZE;
     const halfSize = size / 2;

@@ -3,4 +3,5 @@ ai should recalibrate next target if it gets knocked back
 obstacles
 reverse
 more cars
+night
 options (turn off skid marks and exhaust)
