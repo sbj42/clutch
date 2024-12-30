@@ -3,6 +3,7 @@ import { Tile, TileInfo } from './tile';
 import { Checkpoint, CheckpointInfo } from './checkpoint';
 import { Pathfinder } from './pathfinder';
 import { offsetFromString } from '../geom/offset-str';
+import { ObstacleInfo } from './obstacle';
 
 type TileArray = Array<Tile | undefined>;
 
@@ -10,6 +11,7 @@ export type TrackInfo = {
     startOffset: string;
     start: CheckpointInfo;
     tiles: Record<string, TileInfo>;
+    obstacles: ObstacleInfo[];
 }
 
 export class Track {
@@ -18,6 +20,7 @@ export class Track {
     private _start: Checkpoint;
     private _checkpoints: Checkpoint[] = [];
     private _pathfinders: Pathfinder[] = [];
+    private _obstacles: Readonly<ObstacleInfo>[] = [];
 
     constructor(info: TrackInfo) {
         for (const offsetStr in info.tiles) {
@@ -42,6 +45,7 @@ export class Track {
             const offset = checkpoint.tile.offset;
             this._pathfinders.push(new Pathfinder(this, offset.x, offset.y));
         }
+        this._obstacles = info.obstacles;
     }
 
     get size(): SizeLike {
@@ -58,6 +62,10 @@ export class Track {
 
     get pathfinders(): readonly Pathfinder[] {
         return this._pathfinders;
+    }
+
+    get obstacles(): readonly ObstacleInfo[] {
+        return this._obstacles;
     }
 
     getTile(x: number, y: number) {

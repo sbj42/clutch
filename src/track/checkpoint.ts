@@ -1,13 +1,14 @@
 import { Direction } from "tiled-geometry";
 import { Tile } from "./tile";
+import { directionFromString } from "../geom/direction-str";
 
 export type StartInfo = {
-    direction: Direction;
+    direction: string;
 };
 
 export type CheckpointInfo = {
     index: number; // -1 for start
-    direction: Direction;
+    direction: string;
 };
 
 export class Checkpoint {
@@ -18,7 +19,7 @@ export class Checkpoint {
     constructor(tile: Tile, info: CheckpointInfo | StartInfo) {
         this.tile = tile;
         this.index = 'index' in info ? info.index : -1;
-        this.direction = info.direction;
+        this.direction = directionFromString(info.direction);
     }
 
     get isStart() {

@@ -53,7 +53,7 @@ export class CarUi {
     constructor(raceUi: RaceUi, car: Car, miniScale: number) {
         this.raceUi = raceUi;
         this.car = car;
-        this._miniScale = miniScale
+        this._miniScale = miniScale;
         this.element = getCarImageSet(car.type).getImage(car.type.imageIndex).makeElement();
         const carSize = getCarSize(this.car.type);
         this.element.style.setProperty('position', 'absolute');
@@ -67,7 +67,7 @@ export class CarUi {
 
     tick(sec: number) {
         const body = this.car.body;
-        const carSize = getCarSize(this.car.type);
+        const size = getCarSize(this.car.type);
         this._exhaustTime -= sec;
         if (this._exhaustTime < 0) {
             this._exhaustTime = EXHAUST_TICK;
@@ -76,28 +76,28 @@ export class CarUi {
                 : this.car.burnout ? EXHAUST_CHANCE_BURNOUT
                 : EXHAUST_CHANCE_NORMAL;
             if (Math.random() <= exhaustChance) {
-                const backCenter = Vector.add(body.position, Vector.rotate(Vector.create(-carSize.width * 0.4, 0), body.angle));
+                const backCenter = Vector.add(body.position, Vector.rotate(Vector.create(-size.width * 0.4, 0), body.angle));
                 const outVelocity = Vector.rotate(Vector.create(EXHAUST_VELOCITY * (-1.3 + 0.6 * Math.random()), 0), body.angle);
                 const exhaust = new CloudUi(backCenter, Vector.add(Vector.mult(body.velocity, 15), outVelocity), EXHAUST_COLOR, EXHAUST_DURATION);
                 this.raceUi.addCloud(exhaust);
             }
         }
         if (this.car.burnout || this.car.drift) {
-            const backLeftTire = Vector.add(this.car.body.position, Vector.rotate(Vector.create(-carSize.width * 0.4, -carSize.height * 0.35), this.car.body.angle));
+            const backLeftTire = Vector.add(this.car.body.position, Vector.rotate(Vector.create(-size.width * 0.4, -size.height * 0.35), this.car.body.angle));
             if (!this._skidBackLeft)
             this._skidBackLeft = this._getOrCreateMark(this._skidBackLeft, 'rgba(0, 0, 0, 0.25)', 3);
             this._skidBackLeft.add(backLeftTire);
-            const backRightTire = Vector.add(this.car.body.position, Vector.rotate(Vector.create(-carSize.width * 0.4, carSize.height * 0.35), this.car.body.angle));
+            const backRightTire = Vector.add(this.car.body.position, Vector.rotate(Vector.create(-size.width * 0.4, size.height * 0.35), this.car.body.angle));
             this._skidBackRight = this._getOrCreateMark(this._skidBackRight, 'rgba(0, 0, 0, 0.25)', 3);
             this._skidBackRight.add(backRightTire);
         } else {
             this._skidBackLeft = this._skidBackRight = undefined;
         }
         if (this.car.drift) {
-            const frontLeftTire = Vector.add(this.car.body.position, Vector.rotate(Vector.create(carSize.width * 0.4, -carSize.height * 0.35), this.car.body.angle));
+            const frontLeftTire = Vector.add(this.car.body.position, Vector.rotate(Vector.create(size.width * 0.4, -size.height * 0.35), this.car.body.angle));
             this._skidFrontLeft = this._getOrCreateMark(this._skidFrontLeft, 'rgba(0, 0, 0, 0.25)', 3);
             this._skidFrontLeft.add(frontLeftTire);
-            const frontRightTire = Vector.add(this.car.body.position, Vector.rotate(Vector.create(carSize.width * 0.4, carSize.height * 0.35), this.car.body.angle));
+            const frontRightTire = Vector.add(this.car.body.position, Vector.rotate(Vector.create(size.width * 0.4, size.height * 0.35), this.car.body.angle));
             this._skidFrontRight = this._getOrCreateMark(this._skidFrontRight, 'rgba(0, 0, 0, 0.25)', 3);
             this._skidFrontRight.add(frontRightTire);
         } else {
@@ -107,10 +107,10 @@ export class CarUi {
 
     update() {
         const body = this.car.body;
-        const carSize = getCarSize(this.car.type);
-        this.element.style.setProperty('top', `${body.position.y - carSize.height / 2}px`);
-        this.element.style.setProperty('left', `${body.position.x - carSize.width / 2}px`);
-        this.element.style.transform = `rotate(${body.angle}rad)`;
+        const size = getCarSize(this.car.type);
+        this.element.style.setProperty('top', `${body.position.y - size.height / 2}px`);
+        this.element.style.setProperty('left', `${body.position.x - size.width / 2}px`);
+        this.element.style.setProperty('transform', `rotate(${body.angle}rad)`);
         this.miniElement.style.setProperty('top', `${body.position.y * this._miniScale - 1}px`);
         this.miniElement.style.setProperty('left', `${body.position.x * this._miniScale - 1}px`);
     }

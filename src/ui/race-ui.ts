@@ -9,6 +9,7 @@ import { filterInPlace } from "../util/array";
 import { CheckpointUi } from "./checkpoint-ui";
 import type { MarkUi } from "./mark-ui";
 import { Checkpoint } from "../track/checkpoint";
+import { ObstacleUi } from "./obstacle-ui";
 
 export type RaceUiOptions = {
     wireframe?: boolean;
@@ -42,6 +43,7 @@ export class RaceUi {
     private readonly _miniThingLayer = this._makeLayer('mini-things');
 
     private readonly _carUis: CarUi[] = [];
+    private readonly _obstacleUis: ObstacleUi[] = [];
     private readonly _marks: MarkUi[] = [];
     private readonly _clouds: CloudUi[] = [];
     private readonly _start: CheckpointUi;
@@ -126,6 +128,12 @@ export class RaceUi {
             this._carUis.push(carUi);
         }
 
+        for (const obstacle of this.race.obstacles) {
+            const obstacleUi = new ObstacleUi(this, obstacle);
+            this._thingLayer.appendChild(obstacleUi.element);
+            this._obstacleUis.push(obstacleUi);
+        }
+
         this._start = this._makeCheckpointUi(this.race.track.start);
         for (const checkpoint of this.race.track.checkpoints) {
             this._checkpoints.push(this._makeCheckpointUi(checkpoint));
@@ -187,6 +195,9 @@ export class RaceUi {
         this._mainDiv.style.setProperty('top', `${-offset.y}px`);
         for (const mark of this._marks) {
             mark.update()
+        }
+        for (const obstacleUi of this._obstacleUis) {
+            obstacleUi.update()
         }
         for (const carUi of this._carUis) {
             carUi.update()

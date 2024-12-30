@@ -11,6 +11,11 @@ import { TrackBuilder } from "../track-builder";
 
 export const DOGBONE = TrackBuilder.start(1, 0, Direction.EAST)
     .go(Direction.SOUTH)
+    .obstacle('cone', 0.5, 0.8, Math.random() * 2 * Math.PI)
+    .obstacle('cone', 0.55, 0.8, Math.random() * 2 * Math.PI)
+    .obstacle('cone', 0.5, 0.85, Math.random() * 2 * Math.PI)
+    .obstacle('cone', 0.55, 0.85, Math.random() * 2 * Math.PI)
+    .obstacle('cone', 0.5, 0.9, Math.random() * 2 * Math.PI)
     .trackWidth('narrow')
     .go(Direction.SOUTHEAST)
     .trackWidth('standard')

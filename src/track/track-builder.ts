@@ -1,5 +1,6 @@
 import { directionOpposite, directionToString, Offset, type Direction } from "tiled-geometry";
 import { Track, TrackInfo } from "./track";
+import { ObstacleInfo } from './obstacle';
 import { CheckpointInfo } from "./checkpoint";
 import { TileInfo } from "./tile";
 import { TrackWidth } from "./tile-exit";
@@ -8,6 +9,7 @@ export class TrackBuilder {
     private readonly _tiles: Record<string, TileInfo> = {};
     private readonly _startOffset = new Offset();
     private readonly _startInfo: CheckpointInfo;
+    private readonly _obstacles: ObstacleInfo[] = [];
 
     private _offset = new Offset();
     private _trackWidth: TrackWidth = 'standard';
@@ -20,7 +22,7 @@ export class TrackBuilder {
         this._startOffset.copyFrom(this._offset);
         this._startInfo = {
             index: -1,
-            direction: directionOpposite(startDirection),
+            direction: directionToString(directionOpposite(startDirection)),
         };
     }
 
@@ -47,11 +49,9 @@ export class TrackBuilder {
         if (!tile) {
             throw new Error('no tile');
         }
-        const index = this._nextCheckpointIndex++;
-        const direction = directionOpposite(this._lastDirection);
         tile.checkpoint = {
-            index,
-            direction,
+            index: this._nextCheckpointIndex++,
+            direction: directionToString(directionOpposite(this._lastDirection)),
         };
         return this;
     }
@@ -69,11 +69,22 @@ export class TrackBuilder {
         return this;
     }
 
+    obstacle(type: string, x: number, y: number, angle: number): this {
+        x += this._offset.x
+        this._obstacles.push({
+            type,
+            location: { x, y },
+            angle,
+        });
+        return this;
+    }
+
     toTrackInfo(): TrackInfo {
         return {
             startOffset: this._startOffset.toString(),
             start: this._startInfo,
             tiles: this._tiles,
+            obstacles: this._obstacles,
         };
     }
 
@@ -97,10 +108,6 @@ export class TrackBuilder {
             this._tiles[offsetStr] = tile;
         }
         return tile;
-    }
-
-    private _setTile(offset: Offset, tile: TileInfo) {
-        this._tiles[offset.toString()] = tile;
     }
 
     //#endregion

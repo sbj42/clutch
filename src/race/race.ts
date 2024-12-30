@@ -9,6 +9,7 @@ import { getCheckpointSensor, getStartGrid } from "../track/checkpoint-render";
 import { getInputDirection } from "../ui/input";
 import { CarType, getCarCollisionSize } from "./car-type";
 import { Checkpoint } from "../track/checkpoint";
+import { Obstacle } from "./obstacle";
 
 export type RaceCar = {
     type: CarType;
@@ -24,6 +25,7 @@ export class Race {
     
     private readonly _engine: Engine;
     private readonly _cars: Car[] = [];
+    private readonly _obstacles: Obstacle[] = [];
     private readonly _ais: Ai[] = [];
     private readonly _startSensor: Body;
     private readonly _checkpointSensors: Body[] = [];
@@ -53,6 +55,11 @@ export class Race {
                 this._ais.push(new Ai(this, car, c.ai));
             }
         }
+        for (const o of track.obstacles) {
+            const obstacle = new Obstacle(this, o);
+            this._obstacles.push(obstacle);
+            Composite.add(this._engine.world, obstacle.body);
+        }
     }
 
     get state() {
@@ -65,6 +72,10 @@ export class Race {
 
     get cars(): readonly Car[] {
         return this._cars;
+    }
+
+    get obstacles(): readonly Obstacle[] {
+        return this._obstacles;
     }
 
     get time() {
@@ -98,6 +109,9 @@ export class Race {
         }
         for (const car of this._cars) {
             car.tick(sec);
+        }
+        for (const obstacle of this._obstacles) {
+            obstacle.tick(sec);
         }
         Engine.update(this._engine, sec * 1000);
         if (this._state === 'countdown') {
@@ -143,7 +157,7 @@ export class Race {
                 label: `car:${this._cars.length}`,
                 angle: grid.angle - Math.PI / 2,
                 friction: 1,
-                restitution: 0.8,
+                restitution: 0.4,
             });
             const collision = Query.collides(body, Composite.allBodies(this._engine.world))
                 .filter(col => {

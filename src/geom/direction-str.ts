@@ -6,6 +6,10 @@ for (const dir of DIRECTIONS) {
     DIRECTIONS_STR_MAP[directionToString(dir)] = dir;
 }
 
-export function directionFromString(str: string): Direction | undefined {
-    return DIRECTIONS_STR_MAP[str];
+export function directionFromString(str: string): Direction {
+    const dir = DIRECTIONS_STR_MAP[str];
+    if (dir === undefined) {
+        throw new Error('invalid direction ' + str);
+    }
+    return dir;
 }

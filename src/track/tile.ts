@@ -23,9 +23,6 @@ export class Tile {
         }
         for (const directionStr in info.exits) {
             const direction = directionFromString(directionStr);
-            if (direction === undefined) {
-                throw new Error('invalid direction ' + directionStr);
-            }
             const exitInfo = info.exits[directionStr];
             if (exitInfo) {
                 this._exits[direction] = new TileExit(exitInfo);
