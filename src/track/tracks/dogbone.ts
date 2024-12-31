@@ -10,6 +10,7 @@ import { TrackBuilder } from "../track-builder";
 //     2-.-.
 
 export const DOGBONE = TrackBuilder.start('Dogbone', 1, 0, Direction.EAST, { material: 'dirt' })
+    .decoration('tree', 0.15, 0.85, Math.random() * 2 * Math.PI)
     .go(Direction.SOUTH)
     .trackWidth('narrow')
     .go(Direction.SOUTHEAST)

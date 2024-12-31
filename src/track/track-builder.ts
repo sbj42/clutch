@@ -4,6 +4,7 @@ import { ObstacleInfo } from './obstacle';
 import { CheckpointInfo } from "./checkpoint";
 import { TileInfo } from "./tile";
 import { TrackWidth } from "./tile-exit";
+import type { DecorationInfo } from "./decoration";
 
 export type TrackBuilderOptions = {
     material?: Material;
@@ -16,6 +17,7 @@ export class TrackBuilder {
     private readonly _startOffset = new Offset();
     private readonly _startInfo: CheckpointInfo;
     private readonly _obstacles: ObstacleInfo[] = [];
+    private readonly _decorations: DecorationInfo[] = [];
 
     private _offset = new Offset();
     private _trackWidth: TrackWidth = 'standard';
@@ -88,15 +90,32 @@ export class TrackBuilder {
         return this;
     }
 
+    decoration(type: string, x: number, y: number, angle: number): this {
+        x += this._offset.x;
+        y += this._offset.y;
+        this._decorations.push({
+            type,
+            location: { x, y },
+            angle,
+        });
+        return this;
+    }
+
     toTrackInfo(): TrackInfo {
-        return {
+        const ret: TrackInfo = {
             name: this._name,
             material: this._material,
             startOffset: this._startOffset.toString(),
             start: this._startInfo,
             tiles: this._tiles,
-            obstacles: this._obstacles,
         };
+        if (this._obstacles.length > 0) {
+            ret.obstacles = this._obstacles;
+        }
+        if (this._decorations.length > 0) {
+            ret.decorations = this._decorations;
+        }
+        return ret;
     }
 
     toTrack(): Track {

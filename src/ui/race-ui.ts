@@ -11,6 +11,7 @@ import { Checkpoint } from "../track/checkpoint";
 import { ObstacleUi } from "./obstacle-ui";
 import { RaceAudio } from "./race-audio";
 import { timeToString } from "../util/time";
+import { getDecorationImage } from "./decoration-ui";
 
 export type RaceUiOptions = {
     wireframe?: boolean;
@@ -113,6 +114,11 @@ export class RaceUi {
                 svg.style.setProperty('top', `${TILE_SIZE * (offset.y - 0.5)}px`);
                 this._miniTrackLayer.appendChild(svg);
             }
+        }
+
+        for (const decoration of track.decorations) {
+            const image = getDecorationImage(decoration);
+            this._trackLayer.appendChild(image);
         }
 
         this._miniDiv.appendChild(this._miniThingLayer);
