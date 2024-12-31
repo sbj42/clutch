@@ -1,7 +1,7 @@
 ai should recalibrate next target if it gets knocked back
 arrows on the road (and in preview)
 more tracks
-high scores
+browse high scores
 sound
   crashes (vs car, vs barrier, vs obstacle)
   drift/burnout

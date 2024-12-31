@@ -1,7 +1,8 @@
 import { timeToString } from "../util/time";
 import { GameUi, GREEN_BUTTON_COLOR, makeButton, RED_BUTTON_COLOR, YELLOW_BUTTON_COLOR } from "./game-ui";
+import { loadHighScores, saveHighScores } from "./high-scores";
 
-function placeText(place: number) {
+function ordinalToString(place: number) {
     switch (place) {
         case 1: return '1st';
         case 2: return '2nd';
@@ -10,7 +11,17 @@ function placeText(place: number) {
     }
 }
 
+const MAX_HIGH_SCORES = 5;
+
 export async function resultsUi(gameUi: GameUi, elem: HTMLElement) {
+    const race = gameUi.raceUi?.race;
+    if (!race) {
+        return;
+    }
+    const finished = race.player.finished;
+    if (!finished) {
+        return;
+    }
 
     elem.style.setProperty('inset', '0');
     elem.style.setProperty('display', 'flex');
@@ -25,24 +36,80 @@ export async function resultsUi(gameUi: GameUi, elem: HTMLElement) {
     dialog.style.setProperty('border', '2px solid rgb(49, 49, 49)');
     dialog.style.setProperty('padding', '20px');
     dialog.style.setProperty('box-shadow', '6px 6px 4px rgba(0, 0, 0, 0.5)');
-    dialog.style.setProperty('align-items', 'center');
     elem.appendChild(dialog);
+
+    const split = document.createElement('div');
+    split.style.setProperty('display', 'flex');
+    split.style.setProperty('flex-direction', 'row');
+    split.style.setProperty('gap', '20px');
+    dialog.appendChild(split);
+
+    const resultSide = document.createElement('div');
+    resultSide.style.setProperty('display', 'flex');
+    resultSide.style.setProperty('flex-direction', 'column');
+    resultSide.style.setProperty('align-items', 'center');
+    split.appendChild(resultSide);
 
     const label = document.createElement('div');
     label.textContent = 'RESULT';
     label.style.setProperty('font-size', '30px');
     label.style.setProperty('margin-bottom', '20px');
-    dialog.appendChild(label);
+    resultSide.appendChild(label);
 
-    const place = document.createElement('div');
-    place.textContent = placeText(gameUi.raceUi?.race.player.finished?.place ?? 0) + ' place';
-    place.style.setProperty('font-size', '30px');
-    dialog.appendChild(place);
+    const trackText = document.createElement('div');
+    trackText.textContent = race.track.name;
+    trackText.style.setProperty('font-size', '30px');
+    resultSide.appendChild(trackText);
 
-    const time = document.createElement('div');
-    time.textContent = timeToString(gameUi.raceUi?.race.player.finished?.time ?? 0);
-    time.style.setProperty('font-size', '30px');
-    dialog.appendChild(time);
+    const difficultyText = document.createElement('div');
+    difficultyText.textContent = race.difficulty;
+    difficultyText.style.setProperty('font-size', '30px');
+    resultSide.appendChild(difficultyText);
+
+    const placeText = document.createElement('div');
+    placeText.textContent = ordinalToString(finished.place) + ' place';
+    placeText.style.setProperty('font-size', '30px');
+    resultSide.appendChild(placeText);
+
+    const timeText = document.createElement('div');
+    timeText.textContent = timeToString(finished.time);
+    timeText.style.setProperty('font-size', '30px');
+    resultSide.appendChild(timeText);
+
+    const highScoresSide = document.createElement('div');
+    highScoresSide.style.setProperty('display', 'flex');
+    highScoresSide.style.setProperty('flex-direction', 'column');
+    highScoresSide.style.setProperty('align-items', 'center');
+    split.appendChild(highScoresSide);
+
+    const highScoresLabel = document.createElement('div');
+    highScoresLabel.textContent = 'HIGH SCORES';
+    highScoresLabel.style.setProperty('font-size', '30px');
+    highScoresLabel.style.setProperty('margin-bottom', '20px');
+    highScoresSide.appendChild(highScoresLabel);
+
+    const scores = loadHighScores();
+    const trackScores = scores[race.track.name] ?? {};
+    const difficultyScores = trackScores[race.difficulty] ?? [];
+    const placeIndex = Math.max(0, difficultyScores.findIndex(s => s.time > finished.time));
+    if (placeIndex < MAX_HIGH_SCORES) {
+        difficultyScores.splice(placeIndex, 0, { time: finished.time });
+        difficultyScores.splice(MAX_HIGH_SCORES);
+        trackScores[race.difficulty] = difficultyScores;
+        scores[race.track.name] = trackScores;
+        saveHighScores(scores);
+    }
+
+    for (let index = 0; index < MAX_HIGH_SCORES; index++) {
+        const score = difficultyScores[index];
+        const scoreText = document.createElement('div');
+        scoreText.textContent = `${index + 1}. ${timeToString(score?.time)}`;
+        scoreText.style.setProperty('font-size', '30px');
+        if (index === placeIndex) {
+            scoreText.style.setProperty('color', 'yellow');
+        }
+        highScoresSide.appendChild(scoreText);
+    }
 
     const buttons = document.createElement('div');
     buttons.style.setProperty('display', 'flex');
