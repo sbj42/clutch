@@ -2,6 +2,7 @@ import { Car } from "../race/car";
 import { Vector } from "matter-js";
 import type { RaceUi } from "./race-ui";
 import { Howl } from "howler";
+import { TILE_SIZE } from "../track/tile";
 
 const ENGINE_SOUNDSOURCE = new URL(
     '../../audio/engine.flac',
@@ -15,7 +16,7 @@ export const BASE_VOLUME = 0.2;
 export const PLAYER_VOLUME_BOOST = 0.05;
 export const DOPPLER_MAX_SPEED = 15;
 export const DOPPLER_EFFECT = 0.2;
-export const MAX_DISTANCE = 1500;
+export const MAX_DISTANCE = TILE_SIZE * 3;
 
 const QUIET_MULTIPLIER = 0.3;
 const QUIET_TIME = 1;
@@ -53,6 +54,8 @@ export class CarAudio {
         const relativePosition = Vector.sub(body.position, this.raceUi.race.player.body.position);
         const distance = Vector.magnitude(relativePosition);
         const doppler = -Vector.dot(Vector.normalise(relativePosition), body.velocity) / DOPPLER_MAX_SPEED;
+
+        this._engine.stereo(Math.min(1, Math.max(-1, relativePosition.x / (TILE_SIZE * 2))));
 
         const speed = this.car.body.speed / this.car.type.maxSpeed;
         this._engine.rate(MIN_RATE + (MAX_RATE - MIN_RATE) * speed + this._delta + doppler * DOPPLER_EFFECT);
