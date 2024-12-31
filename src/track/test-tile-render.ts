@@ -11,7 +11,7 @@ if (!fs.existsSync(outDir)) {
 }
 
 function writeTile(t: Track, x: number, y: number, path: string) {
-    const svg = getTileSvg(jsdom.window.document, t.getTile(x, y), { wireframe: true })!;
+    const svg = getTileSvg(jsdom.window.document, t, t.getTile(x, y), { wireframe: true })!;
     fs.writeFileSync(outDir + path, svg.outerHTML);
 }
 
@@ -29,7 +29,7 @@ if (!fs.existsSync(outDir + '/dead-ends')) {
     // .-*-.
     //   |
     //   .
-    const t = TrackBuilder.start(1, 0, Direction.SOUTH)
+    const t = TrackBuilder.start('test', 1, 0, Direction.SOUTH)
         .go(Direction.EAST, Direction.WEST)
         .go(Direction.SOUTH, Direction.NORTH)
         .go(Direction.WEST)
@@ -45,7 +45,7 @@ if (!fs.existsSync(outDir + '/dead-ends')) {
     //   *
     //  / \
     // .   .
-    const t = TrackBuilder.start(0, 0, Direction.SOUTHEAST)
+    const t = TrackBuilder.start('test', 0, 0, Direction.SOUTHEAST)
         .go(Direction.NORTHEAST, Direction.SOUTHWEST)
         .go(Direction.SOUTHWEST, Direction.NORTHEAST)
         .go(Direction.SOUTHEAST)
@@ -69,7 +69,7 @@ if (!fs.existsSync(outDir + '/straight')) {
     // .
     // |
     // .-.-.
-    const t = TrackBuilder.start(0, 0, Direction.SOUTH)
+    const t = TrackBuilder.start('test', 0, 0, Direction.SOUTH)
         .trackWidth('narrow')
         .go(Direction.SOUTH, Direction.EAST)
         .trackWidth('standard')
@@ -84,7 +84,7 @@ if (!fs.existsSync(outDir + '/straight')) {
     //   .   .
     //    \ /
     //     .
-    const t = TrackBuilder.start(0, 0, Direction.SOUTHEAST)
+    const t = TrackBuilder.start('test', 0, 0, Direction.SOUTHEAST)
         .trackWidth('narrow')
         .go(Direction.SOUTHEAST, Direction.NORTHEAST)
         .trackWidth('standard')
@@ -106,7 +106,7 @@ if (!fs.existsSync(outDir + '/corners')) {
     // .-.
     // | |
     // .-.
-    const t = TrackBuilder.start(0, 0, Direction.EAST)
+    const t = TrackBuilder.start('test', 0, 0, Direction.EAST)
         .trackWidth('narrow')
         .go(Direction.SOUTH)
         .trackWidth('standard')
@@ -125,7 +125,7 @@ if (!fs.existsSync(outDir + '/corners')) {
     // .   .
     //  \ /
     //   .
-    const t = TrackBuilder.start(1, 0, Direction.SOUTHEAST)
+    const t = TrackBuilder.start('test', 1, 0, Direction.SOUTHEAST)
         .trackWidth('narrow')
         .go(Direction.SOUTHWEST)
         .trackWidth('standard')
@@ -153,7 +153,7 @@ if (!fs.existsSync(outDir + '/intersections')) {
     // .-.-.
     // | | |
     // .-.-.
-    const t = TrackBuilder.start(0, 0, Direction.SOUTH)
+    const t = TrackBuilder.start('test', 0, 0, Direction.SOUTH)
         .trackWidth('narrow')
         .go(Direction.SOUTH, Direction.NORTH, Direction.EAST)
         .trackWidth('standard')
@@ -185,7 +185,7 @@ if (!fs.existsSync(outDir + '/intersections')) {
     //   .   .
     //    \ /
     //     .
-    const t = TrackBuilder.start(2, 0, Direction.SOUTHWEST)
+    const t = TrackBuilder.start('test', 2, 0, Direction.SOUTHWEST)
         .trackWidth('narrow')
         .go(Direction.SOUTHWEST, Direction.NORTHEAST, Direction.SOUTHEAST)
         .trackWidth('standard')
@@ -223,7 +223,7 @@ if (!fs.existsSync(outDir + '/transitions')) {
     // .     |
     //  \   /
     //   .-.
-    const t = TrackBuilder.start(1, 0, Direction.EAST)
+    const t = TrackBuilder.start('test', 1, 0, Direction.EAST)
         .trackWidth('narrow')
         .go(Direction.SOUTHEAST)
         .trackWidth('standard')

@@ -9,7 +9,7 @@ import { TrackBuilder } from "../track-builder";
 //     |   |
 //     2-.-.
 
-export const DOGBONE = TrackBuilder.start(1, 0, Direction.EAST)
+export const DOGBONE = TrackBuilder.start('Dogbone', 1, 0, Direction.EAST, { material: 'dirt' })
     .go(Direction.SOUTH)
     .trackWidth('narrow')
     .go(Direction.SOUTHEAST)

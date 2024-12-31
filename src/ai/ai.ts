@@ -12,7 +12,6 @@ export class Ai {
     readonly car: Car;
     readonly type: Readonly<AiType>;
 
-    private _anywhere?: number;
     private _nextTarget?: Offset;
 
     constructor(race: Race, car: Car, type: AiType) {
@@ -22,9 +21,11 @@ export class Ai {
     }
 
     tick(sec: number) {
-        let checkpoint = !this.car.finished ? this.race.track.checkpoints[this.car.nextCheckpoint]
-            : this._anywhere !== undefined ? this.race.track.checkpoints[this._anywhere]
-            : null;
+        if (this.car.finished) {
+            this.car.go(undefined);
+            return;
+        }
+        const checkpoint = this.race.track.checkpoints[this.car.nextCheckpoint];
         const position = this.car.body.position;
         const x = Math.floor(position.x / TILE_SIZE);
         const y = Math.floor(position.y / TILE_SIZE);
@@ -34,13 +35,6 @@ export class Ai {
             }
         }
         if (!this._nextTarget) {
-            if (this._anywhere !== undefined && checkpoint?.tile.offset.x === x && checkpoint?.tile.offset.y === y) {
-                checkpoint = null;
-            }
-            if (!checkpoint) {
-                this._anywhere = Math.floor(Math.random() * this.race.track.checkpoints.length);
-                checkpoint = this.race.track.checkpoints[this._anywhere];
-            }
             const pathDirs = this.race.track.pathfinders[checkpoint.index].getNextStep(x, y);
             const dir = pathDirs[Math.floor(Math.random() * pathDirs.length)];
             this._nextTarget = new Offset(x, y).addDirection(dir);

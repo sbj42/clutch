@@ -12,7 +12,7 @@ import { TrackBuilder } from "../track-builder";
 //          \   /
 //           .-.
 
-export const TWISTER = TrackBuilder.start(4, 0, Direction.EAST)
+export const TWISTER = TrackBuilder.start('Twister', 4, 0, Direction.EAST, { material: 'dirt' })
     .go(Direction.SOUTHEAST)
     .checkpoint() // 1
     .go(Direction.SOUTH)

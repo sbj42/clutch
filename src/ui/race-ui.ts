@@ -64,7 +64,7 @@ export class RaceUi {
 
         for (const offset of new Size().copyFrom(track.size).offsets()) {
             const tile = track.getTile(offset.x, offset.y);
-            const svg = getTileSvg(document, tile, { wireframe: this._wireframe });
+            const svg = getTileSvg(document, track, tile, { wireframe: this._wireframe });
             if (svg) {
                 svg.style.setProperty('position', 'absolute');
                 svg.style.setProperty('left', `${TILE_SIZE * (offset.x - 0.5)}px`);
@@ -112,7 +112,7 @@ export class RaceUi {
 
         for (const offset of new Size().copyFrom(track.size).offsets()) {
             const tile = track.getTile(offset.x, offset.y);
-            const svg = getTileSvg(document, tile);
+            const svg = getTileSvg(document, track, tile);
             if (svg) {
                 svg.style.setProperty('position', 'absolute');
                 svg.style.setProperty('left', `${TILE_SIZE * (offset.x - 0.5)}px`);

@@ -8,6 +8,7 @@ import { getTileSvg } from "../track/tile-render";
 import { getCheckpointSvg } from "../track/checkpoint-render";
 import { Track } from "../track/track";
 import { Difficulty } from "../race/race";
+import { TRACKS } from "../track/tracks";
 
 export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
     
@@ -61,12 +62,7 @@ export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
     trackSelect.style.setProperty('margin', '10px');
     listSide.appendChild(trackSelect);
 
-    const tracks = [
-        { name: 'Dogbone', track: DOGBONE },
-        { name: 'Caterpillar', track: CATERPILLAR },
-        { name: 'Twister', track: TWISTER },
-    ];
-    for (const track of tracks) {
+    for (const track of TRACKS) {
         const option = document.createElement('option');
         option.style.setProperty('padding', '3px 10px');
         option.textContent = track.name;
@@ -74,7 +70,7 @@ export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
     }
 
     const go = () => {
-        const track = tracks[trackSelect.selectedIndex].track;
+        const track = TRACKS[trackSelect.selectedIndex];
         const difficulty = difficulties[difficultySelect.selectedIndex].value;
         gameUi.doRace(track, difficulty);
     }
@@ -136,7 +132,7 @@ export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
         goButton.style.setProperty('background-color', GREEN_BUTTON_COLOR);
         goButton.style.setProperty('opacity', '1');
 
-        const track = tracks[trackSelect.selectedIndex].track;
+        const track = TRACKS[trackSelect.selectedIndex];
         preview.innerHTML = '';
         trackPreview(preview, track);
     });
@@ -157,7 +153,7 @@ function trackPreview(elem: HTMLElement, track: Track) {
     
     for (const offset of new Size().copyFrom(track.size).offsets()) {
         const tile = track.getTile(offset.x, offset.y);
-        const svg = getTileSvg(document, tile);
+        const svg = getTileSvg(document, track, tile);
         if (svg) {
             svg.style.setProperty('position', 'absolute');
             svg.style.setProperty('left', `${TILE_SIZE * (offset.x - 0.5)}px`);

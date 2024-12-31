@@ -1,11 +1,17 @@
 import { directionOpposite, directionToString, Offset, type Direction } from "tiled-geometry";
-import { Track, TrackInfo } from "./track";
+import { Track, TrackInfo, type Material } from "./track";
 import { ObstacleInfo } from './obstacle';
 import { CheckpointInfo } from "./checkpoint";
 import { TileInfo } from "./tile";
 import { TrackWidth } from "./tile-exit";
 
+export type TrackBuilderOptions = {
+    material?: Material;
+}
+
 export class TrackBuilder {
+    private readonly _name: string;
+    private readonly _material: Material;
     private readonly _tiles: Record<string, TileInfo> = {};
     private readonly _startOffset = new Offset();
     private readonly _startInfo: CheckpointInfo;
@@ -16,7 +22,9 @@ export class TrackBuilder {
     private _lastDirection?: Direction;
     private _nextCheckpointIndex = 0;
 
-    private constructor(x: number, y: number, startDirection: Direction) {
+    private constructor(name: string, x: number, y: number, startDirection: Direction, options?: TrackBuilderOptions) {
+        this._name = name;
+        this._material = options?.material ?? 'road';
         this.moveTo(x, y);
         this.go(startDirection);
         this._startOffset.copyFrom(this._offset);
@@ -26,8 +34,8 @@ export class TrackBuilder {
         };
     }
 
-    static start(x: number, y: number, startDirection: Direction): TrackBuilder {
-        return new TrackBuilder(x, y, startDirection);
+    static start(name: string, x: number, y: number, startDirection: Direction, options?: TrackBuilderOptions): TrackBuilder {
+        return new TrackBuilder(name, x, y, startDirection, options);
     }
 
     moveTo(x: number, y: number): this {
@@ -42,7 +50,7 @@ export class TrackBuilder {
     }
 
     checkpoint(): this {
-        if (!this._lastDirection) {
+        if (this._lastDirection === undefined) {
             throw new Error('no direction');
         }
         const tile = this._getTile(this._offset);
@@ -82,6 +90,8 @@ export class TrackBuilder {
 
     toTrackInfo(): TrackInfo {
         return {
+            name: this._name,
+            material: this._material,
             startOffset: this._startOffset.toString(),
             start: this._startInfo,
             tiles: this._tiles,

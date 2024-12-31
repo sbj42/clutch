@@ -4,7 +4,7 @@ import { TrackBuilder } from "./track-builder";
 
 describe('Track', () => {
     test('basic', () => {
-        const t = TrackBuilder.start(0 , 0, Direction.SOUTH).toTrack();
+        const t = TrackBuilder.start('test', 0 , 0, Direction.SOUTH).toTrack();
         expect(t.size.width).toBe(1);
         expect(t.size.height).toBe(2);
         expect(t.getTile(0, 0)?.getExit(Direction.SOUTH)).toBeDefined();
@@ -18,7 +18,7 @@ describe('Track', () => {
         // .   .-.
         // |     |
         // .-.-.-.
-        const tb = TrackBuilder.start(0, 0, Direction.EAST)
+        const tb = TrackBuilder.start('test', 0, 0, Direction.EAST)
             .checkpoint()
             .go(Direction.EAST, Direction.SOUTHEAST, Direction.SOUTH, Direction.WEST, Direction.WEST, Direction.WEST, Direction.NORTH, Direction.NORTH);
         tb.moveTo(1, 0)

@@ -5,9 +5,13 @@ import { Pathfinder } from './pathfinder';
 import { offsetFromString } from '../geom/offset-str';
 import { ObstacleInfo } from './obstacle';
 
+export type Material = 'dirt' | 'road';
+
 type TileArray = Array<Tile | undefined>;
 
 export type TrackInfo = {
+    name: string;
+    material: Material;
     startOffset: string;
     start: CheckpointInfo;
     tiles: Record<string, TileInfo>;
@@ -15,6 +19,8 @@ export type TrackInfo = {
 }
 
 export class Track {
+    readonly name: string;
+    readonly material: Material;
     private _size = new Size();
     private _tiles: TileArray = [];
     private _start: Checkpoint;
@@ -23,6 +29,8 @@ export class Track {
     private _obstacles: Readonly<ObstacleInfo>[] = [];
 
     constructor(info: TrackInfo) {
+        this.name = info.name;
+        this.material = info.material;
         for (const offsetStr in info.tiles) {
             const offset = offsetFromString(offsetStr);
             this._size.set(Math.max(this._size.width, offset.x + 1), Math.max(this._size.height, offset.y + 1));

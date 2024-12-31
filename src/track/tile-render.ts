@@ -4,6 +4,7 @@ import { Tile } from './tile';
 import { Direction, directionAddTurn, directionIsCardinal, directionOpposite, DIRECTIONS, Turn, turnFromDirections, turnToString } from 'tiled-geometry';
 import { directionToRadians } from '../geom/angle';
 import { makeSvg, makeSvgPath, makeSvgRect } from "../util/svg";
+import type { Material, Track } from "./track";
 
 function _nextExitDirection(from: Direction, tile: Tile): Direction | undefined {
     for (let i = 0; i < DIRECTIONS.length; i++) {
@@ -22,6 +23,7 @@ export type TileSvgOptions = {
 const BARRIER_THICKNESS = 15;
 
 const TILE_BACKGROUND_DIRT = 'rgb(97, 62, 34)';
+const TILE_BACKGROUND_ROAD = 'rgb(99, 99, 99)';
 
 const SQRT2 = Math.sqrt(2);
 const SIN30 = Math.sin(Math.PI / 6);
@@ -30,8 +32,19 @@ const SIN22_5 = Math.sin(Math.PI / 8);
 const COS22_5 = Math.cos(Math.PI / 8);
 const TAN22_5 = Math.tan(Math.PI / 8);
 
+function _getFillColor(material: Material): string {
+    switch (material) {
+        case 'dirt':
+            return TILE_BACKGROUND_DIRT;
+        case 'road':
+            return TILE_BACKGROUND_ROAD;
+        default:
+            throw new Error('invalid material ' + material);
+    }
+}
+
 // Note that the svg is always twice as big as the tile
-export function getTileSvg(doc: Document, tile: Tile | undefined, options?: TileSvgOptions): SVGElement | undefined {
+export function getTileSvg(doc: Document, track: Track, tile: Tile | undefined, options?: TileSvgOptions): SVGElement | undefined {
     const wireframe = options?.wireframe ?? false;
     if (!tile) {
         return;
@@ -148,7 +161,7 @@ export function getTileSvg(doc: Document, tile: Tile | undefined, options?: Tile
 
     svg.appendChild(makeSvgPath(doc, {
         path,
-        fill: TILE_BACKGROUND_DIRT
+        fill: _getFillColor(track.material),
     }));
 
     if (wireframe) {
