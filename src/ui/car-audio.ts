@@ -17,11 +17,17 @@ export const DOPPLER_MAX_SPEED = 15;
 export const DOPPLER_EFFECT = 0.2;
 export const MAX_DISTANCE = 1500;
 
+const QUIET_MULTIPLIER = 0.3;
+const QUIET_TIME = 1;
+
 export class CarAudio {
     readonly raceUi: RaceUi;
     readonly car: Car;
     private _engine: Howl;
     private _delta: number;
+
+    private _multiplier = 1;
+    private _quiet = false;
 
     constructor(raceUi: RaceUi, car: Car) {
         this.raceUi = raceUi;
@@ -39,6 +45,10 @@ export class CarAudio {
     }
 
     tick(sec: number) {
+        if (this._quiet && this._multiplier > QUIET_MULTIPLIER) {
+            this._multiplier -= sec / QUIET_TIME;
+        }
+
         const body = this.car.body;
         const relativePosition = Vector.sub(body.position, this.raceUi.race.player.body.position);
         const distance = Vector.magnitude(relativePosition);
@@ -48,7 +58,7 @@ export class CarAudio {
         this._engine.rate(MIN_RATE + (MAX_RATE - MIN_RATE) * speed + this._delta + doppler * DOPPLER_EFFECT);
 
         const boost = this.car.isPlayer ? PLAYER_VOLUME_BOOST : 0;
-        this._engine.volume(BASE_VOLUME * Math.max(0, 1 - distance / MAX_DISTANCE) + boost);
+        this._engine.volume((BASE_VOLUME * Math.max(0, 1 - distance / MAX_DISTANCE) + boost) * this._multiplier);
     }
 
     pause(pause: boolean) {
@@ -57,6 +67,10 @@ export class CarAudio {
         } else {
             this._engine.play();
         }
+    }
+
+    quiet() {
+        this._quiet = true;
     }
 
     destroy() {

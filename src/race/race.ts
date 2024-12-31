@@ -16,7 +16,7 @@ export type RaceCar = {
     ai: AiType | undefined;
 }
 
-export type RaceState = 'countdown' | 'go' | 'done';
+export type RaceState = 'countdown' | 'go' | 'finished';
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
 
@@ -126,7 +126,11 @@ export class Race {
     }
 
     claimPlace(): number {
-        return ++ this._carsPlaced;
+        const ret = ++ this._carsPlaced;
+        if (ret === this._cars.length) {
+            this._state = 'finished';
+        }
+        return ret;
     }
 
     tick(sec: number) {

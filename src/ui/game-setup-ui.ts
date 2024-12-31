@@ -1,8 +1,5 @@
 import { Size } from "tiled-geometry";
 import { TILE_SIZE } from "../track/tile";
-import { CATERPILLAR } from "../track/tracks/caterpillar";
-import { DOGBONE } from "../track/tracks/dogbone";
-import { TWISTER } from "../track/tracks/twister";
 import { BACKGROUND_COLOR, BUTTON_DISABLED_COLOR, GameUi, GREEN_BUTTON_COLOR, makeButton } from "./game-ui";
 import { getTileSvg } from "../track/tile-render";
 import { getCheckpointSvg } from "../track/checkpoint-render";
@@ -24,7 +21,7 @@ export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
     ], { duration: 400 });
 
     const instruction = document.createElement('div');
-    instruction.textContent = 'RACE SETUP';
+    instruction.textContent = 'GET READY';
     instruction.style.setProperty('text-align', 'center');
     instruction.style.setProperty('font-size', '60px');
     instruction.style.setProperty('font-style', 'italic');

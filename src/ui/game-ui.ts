@@ -4,6 +4,7 @@ import { RaceUi } from "./race-ui";
 import { titleUi } from "./game-title-ui";
 import { setupUi } from "./game-setup-ui";
 import { pauseUi } from "./game-pause-ui";
+import { resultsUi } from "./game-results-ui";
 
 export type GameState = 'title' | 'setup' | 'race';
 
@@ -12,6 +13,8 @@ export const GREEN_BUTTON_COLOR = 'rgb(33, 129, 9)';
 export const YELLOW_BUTTON_COLOR = 'rgb(129, 117, 9)';
 export const RED_BUTTON_COLOR = 'rgb(129, 9, 9)';
 export const BUTTON_DISABLED_COLOR = 'rgb(107, 119, 104)';
+
+const NUM_LAPS = 3;
 
 export type GameUiOptions = {
     wireframe?: boolean;
@@ -29,9 +32,12 @@ export class GameUi {
     private _trackLayer = this._makeLayer('game-track');
     
     private _raceLayer = this._makeLayer('game-race');
+    
     private _paused = false;
-
     private _pauseLayer = this._makeLayer('game-pause');
+
+    private _results = false;
+    private _resultsLayer = this._makeLayer('game-results');
     
     constructor(elem: HTMLElement, options?: GameUiOptions) {
         this._elem = elem;
@@ -87,7 +93,7 @@ export class GameUi {
             { opacity: 1 },
         ], { duration: 400 });
 
-        const race = new Race(track, 3, difficulty);
+        const race = new Race(track, NUM_LAPS, difficulty);
 
         this._raceLoop(race);
     }
@@ -105,6 +111,17 @@ export class GameUi {
         pauseUi(this, this._pauseLayer);
     }
 
+    doResults() {
+        this._results = true;
+        this.raceUi?.audio.quiet();
+        this._resultsLayer.innerHTML = '';
+        this._elem.appendChild(this._resultsLayer);
+
+        this._resultsLayer.style.setProperty('inset', '0');
+
+        resultsUi(this, this._resultsLayer);
+    }
+
     //#region Internal
 
     private _makeLayer(id: string) {
@@ -119,12 +136,15 @@ export class GameUi {
             if (this._state === 'setup') {
                 this.doTitle();
             } else if (this._state === 'race') {
-                this.doPause(!this._paused);
+                if (this.raceUi?.race.state !== 'finished') {
+                    this.doPause(!this._paused);
+                }
             }
         }
     }
 
     private _stopRace() {
+        this._results = false;
         this.raceUi?.destroy();
         this.raceUi = undefined;
         this.doPause(false);
@@ -141,6 +161,9 @@ export class GameUi {
             if (this.raceUi) {
                 this.raceUi.tick(sec);
                 this.raceUi.update();
+            }
+            if (!this._results && raceUi.race.state === 'finished') {
+                this.doResults()
             }
         };
         

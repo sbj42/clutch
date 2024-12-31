@@ -11,16 +11,11 @@ import type { MarkUi } from "./mark-ui";
 import { Checkpoint } from "../track/checkpoint";
 import { ObstacleUi } from "./obstacle-ui";
 import { RaceAudio } from "./race-audio";
+import { timeToString } from "../util/time";
 
 export type RaceUiOptions = {
     wireframe?: boolean;
 };
-
-function _timeToStr(time: number) {
-    const mm = Math.floor(time / 60);
-    const ss = (time - mm * 60).toFixed(1);
-    return `${String(mm).padStart(2, '0')}:${String(ss).padStart(4, '0')}`;
-}
 
 export class RaceUi {
     readonly race: Race;
@@ -219,11 +214,11 @@ export class RaceUi {
         if (this.race.state !== 'countdown') {
             const finished = player.finished;
             if (finished) {
-                this._statusDiv.textContent = `#${finished.place} ${_timeToStr(finished.time)}`;
+                this._statusDiv.textContent = `#${finished.place} ${timeToString(finished.time)}`;
             } else if (player.lap === 0) {
-                this._statusDiv.textContent = _timeToStr(this.race.time);
+                this._statusDiv.textContent = timeToString(this.race.time);
             } else {
-                this._statusDiv.textContent = `${player.lap}/${this.race.laps} ${_timeToStr(this.race.time)}`;
+                this._statusDiv.textContent = `${player.lap}/${this.race.laps} ${timeToString(this.race.time)}`;
             }
         }
     }

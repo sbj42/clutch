@@ -1,7 +1,6 @@
 ai should recalibrate next target if it gets knocked back
 arrows on the road (and in preview)
 more tracks
-results dialog
 high scores
 sound
   crashes (vs car, vs barrier, vs obstacle)
@@ -20,4 +19,4 @@ hazards
 reverse
 more cars
 night
-options (turn off skid marks and exhaust)
+options (turn off skid marks and exhaust, music, reset high scores)

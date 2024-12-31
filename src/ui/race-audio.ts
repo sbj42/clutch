@@ -20,6 +20,12 @@ export class RaceAudio {
         }
     }
 
+    quiet() {
+        for (const carAudio of this._cars) {
+            carAudio.quiet();
+        }
+    }
+
     destroy() {
         for (const carAudio of this._cars) {
             carAudio.destroy();

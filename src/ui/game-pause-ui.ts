@@ -8,20 +8,20 @@ export async function pauseUi(gameUi: GameUi, elem: HTMLElement) {
     elem.style.setProperty('justify-content', 'center');
     elem.style.setProperty('align-items', 'center');
 
-    const menu = document.createElement('div');
-    menu.style.setProperty('display', 'flex');
-    menu.style.setProperty('flex-direction', 'row');
-    menu.style.setProperty('gap', '20px');
-    menu.style.setProperty('background-color', 'rgb(0, 0, 0)');
-    menu.style.setProperty('border', '2px solid rgb(49, 49, 49)');
-    menu.style.setProperty('padding', '20px');
-    menu.style.setProperty('box-shadow', '6px 6px 4px rgba(0, 0, 0, 0.5)');
-    elem.appendChild(menu);
+    const dialog = document.createElement('div');
+    dialog.style.setProperty('display', 'flex');
+    dialog.style.setProperty('flex-direction', 'row');
+    dialog.style.setProperty('gap', '20px');
+    dialog.style.setProperty('background-color', 'rgb(0, 0, 0)');
+    dialog.style.setProperty('border', '2px solid rgb(49, 49, 49)');
+    dialog.style.setProperty('padding', '20px');
+    dialog.style.setProperty('box-shadow', '6px 6px 4px rgba(0, 0, 0, 0.5)');
+    elem.appendChild(dialog);
 
     const resumeButton = makeButton(GREEN_BUTTON_COLOR, 'RESUME', () => {
         gameUi.doPause(false);
     });
-    menu.appendChild(resumeButton);
+    dialog.appendChild(resumeButton);
     resumeButton.focus();
 
     const restartButton = makeButton(YELLOW_BUTTON_COLOR, 'RESTART', () => {
@@ -31,10 +31,10 @@ export async function pauseUi(gameUi: GameUi, elem: HTMLElement) {
             gameUi.doRace(lastRace.track, lastRace.difficulty);
         }
     });
-    menu.appendChild(restartButton);
+    dialog.appendChild(restartButton);
 
     const quitButton = makeButton(RED_BUTTON_COLOR, 'QUIT', () => {
         gameUi.doTitle();
     });
-    menu.appendChild(quitButton);
+    dialog.appendChild(quitButton);
 }
