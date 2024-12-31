@@ -10,6 +10,7 @@ import { getInputDirection } from "../ui/input";
 import { CarType, getAiCarType, getCarCollisionSize, getPlayerCarType } from "./car-type";
 import { Checkpoint } from "../track/checkpoint";
 import { Obstacle } from "./obstacle";
+import { rotateInPlace } from "../geom/vector";
 
 export type RaceCar = {
     type: CarType;
@@ -19,6 +20,8 @@ export type RaceCar = {
 export type RaceState = 'countdown' | 'go' | 'finished';
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
+
+const VEC = Vector.create();
 
 export class Race {
     readonly track: Track;
@@ -166,7 +169,9 @@ export class Race {
             const tile = this.track.getTile(offset.x, offset.y);
             const composite = getTileComposite(tile);
             if (composite) {
-                Composite.translate(composite, Vector.mult(Vector.create(offset.x, offset.y), TILE_SIZE));
+                VEC.x = offset.x * TILE_SIZE;
+                VEC.y = offset.y * TILE_SIZE;
+                Composite.translate(composite, VEC);
                 Composite.add(this._engine.world, composite);
             }
         }
@@ -178,7 +183,9 @@ export class Race {
     private _makeCheckpointSensor(checkpoint: Checkpoint) {
         const offset = checkpoint.tile.offset;
         const sensor = getCheckpointSensor(checkpoint);
-        Body.translate(sensor, Vector.mult(Vector.create(offset.x, offset.y), TILE_SIZE));
+        VEC.x = offset.x * TILE_SIZE;
+        VEC.y = offset.y * TILE_SIZE;
+        Body.translate(sensor, VEC);
         Composite.add(this._engine.world, sensor);
         return sensor;
     }
@@ -188,11 +195,16 @@ export class Race {
         const start = this.track.start;
         const grid = getStartGrid(start, (this._cars.length + 1) * 2);
         const tileOffset = start.tile.offset;
-        const tileTopLeft = Vector.create(tileOffset.x * TILE_SIZE, tileOffset.y * TILE_SIZE);
+        const tileLeft = tileOffset.x * TILE_SIZE;
+        const tileTop = tileOffset.y * TILE_SIZE;
         let body: Body | undefined;
         for (const cell of grid.cells) {
-            const position = Vector.sub(Vector.add(tileTopLeft, cell), Vector.rotate(Vector.create(collisionSize.width / 2, 0), grid.angle - Math.PI / 2));
-            body = Bodies.rectangle(position.x, position.y, collisionSize.width, collisionSize.height, {
+            VEC.x = collisionSize.width / 2;
+            VEC.y = 0;
+            rotateInPlace(VEC, grid.angle - Math.PI / 2);
+            const x = tileLeft + cell.x - VEC.x;
+            const y = tileTop + cell.y - VEC.y;
+            body = Bodies.rectangle(x, y, collisionSize.width, collisionSize.height, {
                 label: `car:${this._cars.length}`,
                 angle: grid.angle - Math.PI / 2,
                 frictionAir: type.friction,

@@ -10,10 +10,12 @@ export function fixTurn(value: number) {
     return fixAngle(value + Math.PI) - Math.PI;
 }
 
+// TODO: tiled-geometry should have this function
 export function turnToRadians(turn: Turn): number {
     return turnToDegrees(turn) * Math.PI / 180;
 }
 
+// TODO: tiled-geometry should have this function
 export function directionToRadians(dir: Direction): number {
     return turnToRadians(turnFromDirections(Direction.NORTH, dir));
 }

@@ -1,6 +1,7 @@
 import { Direction, Offset } from 'tiled-geometry';
 import pressed from 'pressed';
 import { Vector } from 'matter-js';
+import { normalizeInPlace } from '../geom/vector';
 
 pressed.start();
 
@@ -14,7 +15,9 @@ const dirkeys = {
     'S': Direction.SOUTH,
     'A': Direction.WEST,
 };
+
 const INPUT_OFFSET = new Offset();
+
 export function getInputDirection() {
     INPUT_OFFSET.set(0, 0);
     const shift = pressed('Shift');
@@ -23,5 +26,10 @@ export function getInputDirection() {
             INPUT_OFFSET.addDirection(dirkeys[key]);
         }
     }
-    return Vector.mult(INPUT_OFFSET, Math.min(1, 1 / Vector.magnitude(INPUT_OFFSET)) * (shift ? 0.5 : 1));
+    normalizeInPlace(INPUT_OFFSET);
+    if (shift) {
+        INPUT_OFFSET.x *= 0.5;
+        INPUT_OFFSET.y *= 0.5;
+    }
+    return INPUT_OFFSET;
 }

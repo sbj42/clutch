@@ -5,15 +5,18 @@ const MINIMUM_DISTANCE = 10;
 const FADE_START = 25;
 const DURATION = 30;
 
+const VEC = Vector.create();
+
 export class MarkUi {
     readonly element: SVGElement;
     
     private readonly _strokeWidth: number;
+    private readonly _max = Vector.create(0, 0);
+    private readonly _path: SVGPolylineElement;
+    private readonly _points: string[] = [];
+
     private _lastPoint?: Vector;
-    private _points: string[] = [];
-    private _max = Vector.create(0, 0);
     private _changed = false;
-    private _path: SVGPolylineElement;
     private _time = 0;
 
     constructor(stroke: string, strokeWidth: number) {
@@ -30,14 +33,22 @@ export class MarkUi {
         this.element.appendChild(this._path);
     }
 
-    add(point: Vector) {
-        if (this._lastPoint && Vector.magnitude(Vector.sub(point, this._lastPoint)) < MINIMUM_DISTANCE) {
-            return;
+    add(x: number, y: number) {
+        if (!this._lastPoint) {
+            this._lastPoint = Vector.create(x, y);
+        } else {
+            VEC.x = x;
+            VEC.y = y;
+            Vector.sub(VEC, this._lastPoint, VEC);
+            if (Vector.magnitude(VEC) < MINIMUM_DISTANCE) {
+                return;
+            }
         }
-        this._lastPoint = point;
-        this._points.push(`${point.x.toFixed(1)},${point.y.toFixed(1)}`);
-        this._max.x = Math.max(this._max.x, point.x + this._strokeWidth);
-        this._max.y = Math.max(this._max.y, point.y + this._strokeWidth);
+        this._lastPoint.x = x;
+        this._lastPoint.y = y;
+        this._points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+        this._max.x = Math.max(this._max.x, x);
+        this._max.y = Math.max(this._max.y, y);
         this._changed = true;
     }
 

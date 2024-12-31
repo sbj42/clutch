@@ -1,20 +1,22 @@
-import { Vector } from "matter-js";
-
 const START_RADIUS = 4;
 const GROWTH_SPEED = 50; // radius pixels per second
 
 export class CloudUi {
     readonly element: HTMLElement;
     
-    private _position: Vector;
-    private _velocity: Vector;
+    private _x: number;
+    private _y: number;
+    private _dx: number;
+    private _dy: number;
     private _radius = START_RADIUS;
     private _duration: number;
     private _time = 0;
 
-    constructor(position: Vector, velocity: Vector, color: string, duration: number) {
-        this._position = position;
-        this._velocity = velocity;
+    constructor(x: number, y: number, dx: number, dy: number, color: string, duration: number) {
+        this._x = x;
+        this._y = y;
+        this._dx = dx;
+        this._dy = dy;
         this._duration = duration;
         this.element = document.createElement('img');
         this.element.style.setProperty('position', 'absolute');
@@ -27,7 +29,8 @@ export class CloudUi {
 
     tick(sec: number) {
         this._time += sec;
-        this._position = Vector.add(this._position, Vector.mult(this._velocity, sec));
+        this._x += this._dx * sec;
+        this._y += this._dy * sec;
         this._radius += sec * GROWTH_SPEED;
     }
 
@@ -35,8 +38,8 @@ export class CloudUi {
         if (this.expired) {
             return;
         }
-        this.element.style.setProperty('left', `${this._position.x - this._radius}px`);
-        this.element.style.setProperty('top', `${this._position.y - this._radius}px`);
+        this.element.style.setProperty('left', `${this._x - this._radius}px`);
+        this.element.style.setProperty('top', `${this._y - this._radius}px`);
         this.element.style.setProperty('width', `${this._radius * 2}px`);
         this.element.style.setProperty('height', `${this._radius * 2}px`);
         this.element.style.setProperty('opacity', String(Math.max(0, 1 - this._time / this._duration)));

@@ -3,7 +3,6 @@ import { Race } from "../race/race";
 import { Size } from "tiled-geometry";
 import { TILE_SIZE } from "../track/tile";
 import { CarUi } from "./car-ui";
-import { Vector } from "matter-js";
 import type { CloudUi } from "./cloud-ui";
 import { filterInPlace } from "../util/array";
 import { CheckpointUi } from "./checkpoint-ui";
@@ -185,11 +184,11 @@ export class RaceUi {
 
     update() {
         const { innerWidth, innerHeight } = window;
-        const windowSize = Vector.create(innerWidth, innerHeight);
         const player = this.race.player;
-        const offset = Vector.sub(player.body.position, Vector.mult(windowSize, 0.5));
-        this._mainDiv.style.setProperty('left', `${-offset.x}px`);
-        this._mainDiv.style.setProperty('top', `${-offset.y}px`);
+        const offsetX = player.body.position.x - innerWidth / 2;
+        const offsetY = player.body.position.y - innerHeight / 2;
+        this._mainDiv.style.setProperty('left', `${-offsetX}px`);
+        this._mainDiv.style.setProperty('top', `${-offsetY}px`);
         for (const mark of this._marks) {
             mark.update()
         }

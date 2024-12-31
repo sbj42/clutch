@@ -3,16 +3,20 @@ import type { Car } from "../race/car";
 import { Race } from "../race/race";
 import { TILE_SIZE } from "../track/tile";
 import { Offset } from "tiled-geometry";
+import { normalizeInPlace } from "../geom/vector";
 
 export type AiType = {
 }
+
+const VEC = Vector.create();
 
 export class Ai {
     readonly race: Race;
     readonly car: Car;
     readonly type: Readonly<AiType>;
 
-    private _nextTarget?: Offset;
+    private _target = new Offset();
+    private _newTarget = true;
 
     constructor(race: Race, car: Car, type: AiType) {
         this.race = race;
@@ -29,22 +33,16 @@ export class Ai {
         const position = this.car.body.position;
         const x = Math.floor(position.x / TILE_SIZE);
         const y = Math.floor(position.y / TILE_SIZE);
-        if (this._nextTarget) {
-            if (this._nextTarget.x === x && this._nextTarget.y === y) {
-                this._nextTarget = undefined;
-            }
-        }
-        if (!this._nextTarget) {
+        this._newTarget ||= this._target.x === x && this._target.y === y;
+        if (this._newTarget) {
             const pathDirs = this.race.track.pathfinders[checkpoint.index].getNextStep(x, y);
             const dir = pathDirs[Math.floor(Math.random() * pathDirs.length)];
-            this._nextTarget = new Offset(x, y).addDirection(dir);
+            this._target.set(x, y).addDirection(dir);
+            this._newTarget = false;
         }
-        if (this._nextTarget) {
-            const targetPosition = Vector.create((this._nextTarget.x + 0.5) * TILE_SIZE, (this._nextTarget.y + 0.5) * TILE_SIZE);
-            const targetDir = Vector.normalise(Vector.sub(targetPosition, this.car.body.position));
-            this.car.go(targetDir);
-        } else {
-            this.car.go(undefined);
-        }
+        VEC.x = (this._target.x + 0.5) * TILE_SIZE - position.x;
+        VEC.y = (this._target.y + 0.5) * TILE_SIZE - position.y;
+        normalizeInPlace(VEC);
+        this.car.go(VEC);
     }
 }

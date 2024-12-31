@@ -43,7 +43,7 @@ function getObstacleImage(type: ObstacleType, struck: boolean) {
         default: throw new Error('invalid obstacle type ' + type);
     }
     const size = getObstacleSize(type, struck);
-    return new Image(url, size, Vector.create(0, 0));
+    return new Image(url, size).makeElement();
 }
 
 export class ObstacleUi {
@@ -60,7 +60,7 @@ export class ObstacleUi {
         this.element.style.setProperty('position', 'absolute');
         const size = getObstacleSize(this.obstacle.type, this.obstacle.struck);
         this.element.style.setProperty('transform-origin', `${size.width / 2}px ${size.height / 2}px`);
-        this.element.appendChild(getObstacleImage(this.obstacle.type, false).makeElement());
+        this.element.appendChild(getObstacleImage(this.obstacle.type, false));
     }
 
     tick(sec: number) {
@@ -75,7 +75,7 @@ export class ObstacleUi {
         if (this.obstacle.struck && !this._wasStruck) {
             this._wasStruck = true;
             this.element.innerHTML = '';
-            this.element.appendChild(getObstacleImage(this.obstacle.type, true).makeElement());
+            this.element.appendChild(getObstacleImage(this.obstacle.type, true));
         }
     }
 }

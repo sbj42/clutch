@@ -7,6 +7,7 @@ import { CloudUi } from "./cloud-ui";
 import type { RaceUi } from "./race-ui";
 import { MarkUi } from "./mark-ui";
 import { CarAudio } from "./car-audio";
+import { rotateInPlace } from "../geom/vector";
 
 const STANDARD_SIZE = new Size().set(64, 32);
 const STANDARD_IMAGESOURCE = new URL(
@@ -36,6 +37,9 @@ const EXHAUST_VELOCITY = 20;
 const EXHAUST_DURATION = 2;
 const EXHAUST_COLOR = 'rgba(200, 200, 200, 0.08)';
 
+const VEC_POSITION = Vector.create();
+const VEC_VELOCITY = Vector.create();
+
 export class CarUi {
     readonly raceUi: RaceUi;
     readonly car: Car;
@@ -57,7 +61,7 @@ export class CarUi {
         this.car = car;
         this._miniScale = miniScale;
         this.audio = new CarAudio(raceUi, car);
-        this.element = getCarImageSet(car.type).getImage(car.type.imageIndex).makeElement();
+        this.element = getCarImageSet(car.type).get(car.type.imageIndex);
         const carSize = getCarSize(this.car.type);
         this.element.style.setProperty('position', 'absolute');
         this.element.style.setProperty('transform-origin', `${carSize.width / 2}px ${carSize.height / 2}px`);
@@ -80,30 +84,65 @@ export class CarUi {
                 : this.car.burnout ? EXHAUST_CHANCE_BURNOUT
                 : EXHAUST_CHANCE_NORMAL;
             if (Math.random() <= exhaustChance) {
-                const backCenter = Vector.add(body.position, Vector.rotate(Vector.create(-size.width * 0.4, 0), body.angle));
-                const outVelocity = Vector.rotate(Vector.create(EXHAUST_VELOCITY * (-1.3 + 0.6 * Math.random()), 0), body.angle);
-                const exhaust = new CloudUi(backCenter, Vector.add(Vector.mult(body.velocity, 15), outVelocity), EXHAUST_COLOR, EXHAUST_DURATION);
+                VEC_POSITION.x = -size.width * 0.4;
+                VEC_POSITION.y = 0;
+                rotateInPlace(VEC_POSITION, body.angle);
+                const x = VEC_POSITION.x + body.position.x;
+                const y = VEC_POSITION.y + body.position.y;
+                VEC_VELOCITY.x = EXHAUST_VELOCITY * (-1.3 + 0.6 * Math.random());
+                VEC_VELOCITY.y = 0;
+                rotateInPlace(VEC_VELOCITY, body.angle);
+                const dx = VEC_VELOCITY.x + body.velocity.x * 15;
+                const dy = VEC_VELOCITY.y + body.velocity.y * 15;
+                const exhaust = new CloudUi(x, y, dx, dy, EXHAUST_COLOR, EXHAUST_DURATION);
                 this.raceUi.addCloud(exhaust);
             }
         }
         if (this.car.burnout || this.car.drift) {
-            const backLeftTire = Vector.add(this.car.body.position, Vector.rotate(Vector.create(-size.width * 0.4, -size.height * 0.35), this.car.body.angle));
-            if (!this._skidBackLeft)
-            this._skidBackLeft = this._getOrCreateMark(this._skidBackLeft, 'rgba(0, 0, 0, 0.25)', 3);
-            this._skidBackLeft.add(backLeftTire);
-            const backRightTire = Vector.add(this.car.body.position, Vector.rotate(Vector.create(-size.width * 0.4, size.height * 0.35), this.car.body.angle));
-            this._skidBackRight = this._getOrCreateMark(this._skidBackRight, 'rgba(0, 0, 0, 0.25)', 3);
-            this._skidBackRight.add(backRightTire);
+            // back-left tire
+            {
+                VEC_POSITION.x = -size.width * 0.4;
+                VEC_POSITION.y = -size.height * 0.35;
+                rotateInPlace(VEC_POSITION, body.angle);
+                const x = body.position.x + VEC_POSITION.x;
+                const y = body.position.y + VEC_POSITION.y;
+                this._skidBackLeft = this._getOrCreateMark(this._skidBackLeft, 'rgba(0, 0, 0, 0.25)', 3);
+                this._skidBackLeft.add(x, y);
+            }
+            // back-right tire
+            {
+                VEC_POSITION.x = -size.width * 0.4;
+                VEC_POSITION.y = size.height * 0.35;
+                rotateInPlace(VEC_POSITION, body.angle);
+                const x = body.position.x + VEC_POSITION.x;
+                const y = body.position.y + VEC_POSITION.y;
+                this._skidBackRight = this._getOrCreateMark(this._skidBackRight, 'rgba(0, 0, 0, 0.25)', 3);
+                this._skidBackRight.add(x, y);
+            }
         } else {
             this._skidBackLeft = this._skidBackRight = undefined;
         }
         if (this.car.drift) {
-            const frontLeftTire = Vector.add(this.car.body.position, Vector.rotate(Vector.create(size.width * 0.4, -size.height * 0.35), this.car.body.angle));
-            this._skidFrontLeft = this._getOrCreateMark(this._skidFrontLeft, 'rgba(0, 0, 0, 0.25)', 3);
-            this._skidFrontLeft.add(frontLeftTire);
-            const frontRightTire = Vector.add(this.car.body.position, Vector.rotate(Vector.create(size.width * 0.4, size.height * 0.35), this.car.body.angle));
-            this._skidFrontRight = this._getOrCreateMark(this._skidFrontRight, 'rgba(0, 0, 0, 0.25)', 3);
-            this._skidFrontRight.add(frontRightTire);
+            // front-left tire
+            {
+                VEC_POSITION.x = size.width * 0.4;
+                VEC_POSITION.y = -size.height * 0.35;
+                rotateInPlace(VEC_POSITION, body.angle);
+                const x = body.position.x + VEC_POSITION.x;
+                const y = body.position.y + VEC_POSITION.y;
+                this._skidFrontLeft = this._getOrCreateMark(this._skidFrontLeft, 'rgba(0, 0, 0, 0.25)', 3);
+                this._skidFrontLeft.add(x, y);
+            }
+            // front-right tire
+            {
+                VEC_POSITION.x = size.width * 0.4;
+                VEC_POSITION.y = size.height * 0.35;
+                rotateInPlace(VEC_POSITION, body.angle);
+                const x = body.position.x + VEC_POSITION.x;
+                const y = body.position.y + VEC_POSITION.y;
+                this._skidFrontRight = this._getOrCreateMark(this._skidFrontRight, 'rgba(0, 0, 0, 0.25)', 3);
+                this._skidFrontRight.add(x, y);
+            }
         } else {
             this._skidFrontLeft = this._skidFrontRight = undefined;
         }

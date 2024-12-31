@@ -1,3 +1,5 @@
+track editor
+shuffle weights for opponents
 characters for the other drivers
   yell at you when you hit them
   say lines while the results are shown
@@ -5,6 +7,11 @@ ai should recalibrate next target if it gets knocked back
 arrows on the road (and in preview)
 more tracks
 browse high scores
+shortcuts
+decorations
+  trees (3d-ish second plane)
+damage
+debris
 sound
   crashes (vs car, vs barrier, vs obstacle)
   drift/burnout

@@ -2,6 +2,7 @@ import { Body, Collision, Vector } from "matter-js";
 import { fixAngle, fixTurn } from "../geom/angle";
 import { Race } from "./race";
 import { CarType } from "./car-type";
+import { getAngle, rotateInPlace } from "../geom/vector";
 
 export type CarState = 'before-start' | 'racing' | 'finishing' | 'finished';
 
@@ -22,6 +23,9 @@ export type Finished = {
     place: number;
     time: number;
 }
+
+const VEC_TARGET_VELOCITY = Vector.create();
+const VEC_VELOCITY_DELTA = Vector.create();
 
 export class Car {
     readonly index: number;
@@ -89,7 +93,7 @@ export class Car {
         }
         const mag = Vector.magnitude(direction);
         if (mag > 0.01) {
-            this._desiredAngle = Vector.angle(Vector.create(0, 0), direction);
+            this._desiredAngle = getAngle(direction);
             this._desiredSpeed = mag;
         } else {
             this._desiredAngle = undefined;
@@ -125,14 +129,19 @@ export class Car {
             if (speedDiff > BURNOUT_SPEED_DIFF) {
                 this._burnout = true;
             }
-            const targetSpeed = Vector.mult(Vector.rotate(Vector.create(1, 0), this.body.angle), this.type.maxSpeed * desiredSpeed);
-            const toward = Vector.sub(targetSpeed, this.body.velocity);
-            const mag = Vector.magnitude(toward);
+            VEC_TARGET_VELOCITY.x = this.type.maxSpeed * desiredSpeed;
+            VEC_TARGET_VELOCITY.y = 0;
+            rotateInPlace(VEC_TARGET_VELOCITY, this.body.angle);
+            VEC_VELOCITY_DELTA.x = VEC_TARGET_VELOCITY.x - this.body.velocity.x;
+            VEC_VELOCITY_DELTA.y = VEC_TARGET_VELOCITY.y - this.body.velocity.y;
+            const mag = Vector.magnitude(VEC_VELOCITY_DELTA);
             const acceleration = this.type.acceleration * sec;
             if (mag < acceleration) {
-                Body.setVelocity(this.body, targetSpeed);
+                Body.setVelocity(this.body, VEC_TARGET_VELOCITY);
             } else {
-                Body.applyForce(this.body, this.body.position, Vector.mult(toward, acceleration / mag));
+                VEC_VELOCITY_DELTA.x *= acceleration / mag;
+                VEC_VELOCITY_DELTA.y *= acceleration / mag;
+                Body.applyForce(this.body, this.body.position, VEC_VELOCITY_DELTA);
             }
         } else {
             this._idle = true;
@@ -140,7 +149,7 @@ export class Car {
 
         this._checkCheckpoint();
 
-        const sideways = fixTurn(this.body.angle - Vector.angle(Vector.create(0, 0), this.body.velocity));
+        const sideways = fixTurn(this.body.angle - getAngle(this.body.velocity));
         if (Math.abs(sideways) > DRIFT_ANGLE_DIFF && this.body.speed > DRIFT_SPEED * this.type.maxSpeed) {
             this._drift = true;
         }

@@ -21,6 +21,8 @@ export const MAX_DISTANCE = TILE_SIZE * 3;
 const QUIET_MULTIPLIER = 0.3;
 const QUIET_TIME = 1;
 
+const VEC = Vector.create();
+
 export class CarAudio {
     readonly raceUi: RaceUi;
     readonly car: Car;
@@ -46,22 +48,28 @@ export class CarAudio {
     }
 
     tick(sec: number) {
+        const player = this.raceUi.race.player;
         if (this._quiet && this._multiplier > QUIET_MULTIPLIER) {
             this._multiplier -= sec / QUIET_TIME;
         }
 
         const body = this.car.body;
-        const relativePosition = Vector.sub(body.position, this.raceUi.race.player.body.position);
-        const distance = Vector.magnitude(relativePosition);
-        const doppler = -Vector.dot(Vector.normalise(relativePosition), body.velocity) / DOPPLER_MAX_SPEED;
+        VEC.x = body.position.x - player.body.position.x;
+        VEC.y = body.position.y - player.body.position.y;
+        const distance = Vector.magnitude(VEC);
+        const doppler = distance > 0 ? -Vector.dot(VEC, body.velocity) / distance / DOPPLER_MAX_SPEED : 0;
 
-        this._engine.stereo(Math.min(1, Math.max(-1, relativePosition.x / (TILE_SIZE * 2))));
-
-        const speed = this.car.body.speed / this.car.type.maxSpeed;
-        this._engine.rate(MIN_RATE + (MAX_RATE - MIN_RATE) * speed + this._delta + doppler * DOPPLER_EFFECT);
+        this._engine.stereo(Math.min(1, Math.max(-1, VEC.x / (TILE_SIZE * 2))));
 
         const boost = this.car.isPlayer ? PLAYER_VOLUME_BOOST : 0;
-        this._engine.volume((BASE_VOLUME * Math.max(0, 1 - distance / MAX_DISTANCE) + boost) * this._multiplier);
+        const volume = (BASE_VOLUME * Math.max(0, 1 - distance / MAX_DISTANCE) + boost) * this._multiplier;
+        this._engine.volume(volume);
+
+        const speed = this.car.body.speed / this.car.type.maxSpeed;
+        const newRate = MIN_RATE + (MAX_RATE - MIN_RATE) * speed + this._delta + doppler * DOPPLER_EFFECT;
+        if (Math.abs(newRate - this._engine.rate()) > 0.02 && volume > 0) {
+            this._engine.rate(newRate);
+        }
     }
 
     pause(pause: boolean) {

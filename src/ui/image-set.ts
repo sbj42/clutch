@@ -1,20 +1,26 @@
-import { Vector } from "matter-js";
+import { Size, type SizeLike } from "tiled-geometry";
 import { Image } from "./image";
-import { Size } from "tiled-geometry";
 
 export class ImageSet {
     readonly url: URL;
-    readonly imageSize: Size;
+    private readonly _imageSize = new Size();
     readonly count: number;
 
-    constructor(url: URL, imageSize: Size, count: number) {
+    constructor(url: URL, imageSize: SizeLike, count: number) {
         this.url = url;
-        this.imageSize = imageSize;
+        this._imageSize.copyFrom(imageSize);
         this.count = count;
     }
 
-    getImage(index: number) {
-        return new Image(this.url, this.imageSize, Vector.create(0, this.imageSize.height * index));
+    get imageSize(): SizeLike {
+        return this._imageSize;
+    }
+
+    get(index: number) {
+        if (index < 0 || index >= this.count) {
+            throw new Error('invalid image index');
+        }
+        return new Image(this.url, this._imageSize, 0, this._imageSize.height * index).makeElement();
     }
     
 }
