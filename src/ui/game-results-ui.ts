@@ -91,7 +91,7 @@ export async function resultsUi(gameUi: GameUi, elem: HTMLElement) {
     const scores = loadHighScores();
     const trackScores = scores[race.track.name] ?? {};
     const difficultyScores = trackScores[race.difficulty] ?? [];
-    const placeIndex = Math.max(0, difficultyScores.findIndex(s => s.time > finished.time));
+    const placeIndex = Math.min(difficultyScores.length, difficultyScores.findIndex(s => s.time > finished.time));
     if (placeIndex < MAX_HIGH_SCORES) {
         difficultyScores.splice(placeIndex, 0, { time: finished.time });
         difficultyScores.splice(MAX_HIGH_SCORES);
