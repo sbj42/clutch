@@ -5,7 +5,7 @@ import { directionFromString } from '../geom/direction-str';
 
 export type TileInfo = {
     checkpoint?: CheckpointInfo;
-    exits: Record<string, TileExitInfo>;
+    exits: Record<string, TileExitInfo | undefined>;
 };
 
 export const TILE_SIZE = 600;

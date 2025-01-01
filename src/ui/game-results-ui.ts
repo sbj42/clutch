@@ -23,6 +23,7 @@ export async function resultsUi(gameUi: GameUi, elem: HTMLElement) {
         return;
     }
 
+    elem.innerHTML = '';
     elem.style.setProperty('inset', '0');
     elem.style.setProperty('display', 'flex');
     elem.style.setProperty('flex-direction', 'column');

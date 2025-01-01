@@ -4,7 +4,8 @@ import { Tile } from './tile';
 import { Direction, directionAddTurn, directionIsCardinal, directionOpposite, DIRECTIONS, Turn, turnFromDirections, turnToString } from 'tiled-geometry';
 import { directionToRadians } from '../geom/angle';
 import { makeSvg, makeSvgPath, makeSvgRect } from "../util/svg";
-import type { Material, Track } from "./track";
+import type { Track } from "./track";
+import { Material } from "./track-info";
 
 function _nextExitDirection(from: Direction, tile: Tile): Direction | undefined {
     for (let i = 0; i < DIRECTIONS.length; i++) {

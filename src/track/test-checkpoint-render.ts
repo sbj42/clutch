@@ -26,7 +26,7 @@ if (!fs.existsSync(outDir + '/checkpoints')) {
 }
 
 {
-    const t = TrackBuilder.start(0, 0, Direction.EAST)
+    const t = TrackBuilder.start('test', 0, 0, Direction.EAST)
         .checkpoint()
         .go(Direction.SOUTHEAST)
         .checkpoint()

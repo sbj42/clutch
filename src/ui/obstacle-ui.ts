@@ -22,24 +22,32 @@ const BARREL_STRUCK_IMAGE = new URL(
     import.meta.url
 );
 
+const TIRE_IMAGE = new URL(
+    '../../image/tire.png?as=webp',
+    import.meta.url
+);
+
 const CONE_SIZE = new Size(14, 14);
 const CONE_STRUCK_SIZE = new Size(14, 12);
 const BARREL_SIZE = new Size(24, 24);
 const BARREL_STRUCK_SIZE = new Size(26, 22);
+const TIRE_SIZE = new Size(32, 32);
 
 export function getObstacleSize(type: ObstacleType, struck: boolean) {
     switch (type) {
         case 'cone': return struck ? CONE_STRUCK_SIZE : CONE_SIZE;
         case 'barrel': return struck ? BARREL_STRUCK_SIZE : BARREL_SIZE;
+        case 'tire': return TIRE_SIZE;
         default: throw new Error('invalid obstacle type ' + type);
     }
 }
 
-function getObstacleImage(type: ObstacleType, struck: boolean) {
+export function getObstacleImage(type: ObstacleType, struck: boolean) {
     let url: URL;
     switch (type) {
         case 'cone': url = struck ? CONE_STRUCK_IMAGE : CONE_IMAGE; break;
         case 'barrel': url = struck ? BARREL_STRUCK_IMAGE : BARREL_IMAGE; break;
+        case 'tire': url = TIRE_IMAGE; break;
         default: throw new Error('invalid obstacle type ' + type);
     }
     const size = getObstacleSize(type, struck);

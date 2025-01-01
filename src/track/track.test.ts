@@ -1,5 +1,4 @@
 import { Direction } from "tiled-geometry";
-import { Track } from "./track";
 import { TrackBuilder } from "./track-builder";
 
 describe('Track', () => {

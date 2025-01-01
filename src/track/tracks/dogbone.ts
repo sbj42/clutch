@@ -10,7 +10,6 @@ import { TrackBuilder } from "../track-builder";
 //     2-.-.
 
 export const DOGBONE = TrackBuilder.start('Dogbone', 1, 0, Direction.EAST, { material: 'dirt' })
-    .decoration('tree', 0.15, 0.85, Math.random() * 2 * Math.PI)
     .go(Direction.SOUTH)
     .trackWidth('narrow')
     .go(Direction.SOUTHEAST)
@@ -19,8 +18,6 @@ export const DOGBONE = TrackBuilder.start('Dogbone', 1, 0, Direction.EAST, { mat
     .checkpoint() // 1
     .go(Direction.SOUTH)
     .go(Direction.WEST)
-    .obstacle('barrel', 0.5, 0.3, Math.random() * 2 * Math.PI)
-    .obstacle('barrel', 0.45, 0.33, Math.random() * 2 * Math.PI)
     .go(Direction.WEST)
     .checkpoint() // 2
     .go(Direction.NORTH)
@@ -29,9 +26,6 @@ export const DOGBONE = TrackBuilder.start('Dogbone', 1, 0, Direction.EAST, { mat
     .trackWidth('standard')
     .go(Direction.WEST)
     .checkpoint() // 3
-    .obstacle('cone', 0.72, 0, Math.random() * 2 * Math.PI)
-    .obstacle('cone', 0.68, 0.01, Math.random() * 2 * Math.PI)
-    .obstacle('cone', 0.64, 0.02, Math.random() * 2 * Math.PI)
     .go(Direction.NORTH)
     .go(Direction.EAST)
     .go(Direction.EAST)

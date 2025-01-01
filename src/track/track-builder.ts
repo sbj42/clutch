@@ -1,5 +1,6 @@
 import { directionOpposite, directionToString, Offset, type Direction } from "tiled-geometry";
-import { Track, TrackInfo, type Material } from "./track";
+import { Track } from "./track";
+import { TrackInfo, type Material } from './track-info';
 import { ObstacleInfo } from './obstacle';
 import { CheckpointInfo } from "./checkpoint";
 import { TileInfo } from "./tile";

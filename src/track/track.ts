@@ -1,46 +1,37 @@
 import { Size, SizeLike }  from 'tiled-geometry';
-import { Tile, TileInfo } from './tile';
-import { Checkpoint, CheckpointInfo } from './checkpoint';
+import { Tile } from './tile';
+import { Checkpoint } from './checkpoint';
 import { Pathfinder } from './pathfinder';
 import { offsetFromString } from '../geom/offset-str';
 import { ObstacleInfo } from './obstacle';
 import type { DecorationInfo } from './decoration';
-
-export type Material = 'dirt' | 'road';
+import { copyTrackInfo, type TrackInfo } from './track-info';
 
 type TileArray = Array<Tile | undefined>;
 
-export type TrackInfo = {
-    name: string;
-    material: Material;
-    startOffset: string;
-    start: CheckpointInfo;
-    tiles: Record<string, TileInfo>;
-    obstacles?: ObstacleInfo[];
-    decorations?: DecorationInfo[];
-}
-
 export class Track {
-    readonly name: string;
-    readonly material: Material;
-    private _size = new Size();
-    private _tiles: TileArray = [];
-    private _start: Checkpoint;
-    private _checkpoints: Checkpoint[] = [];
-    private _pathfinders: Pathfinder[] = [];
-    private _obstacles: Readonly<ObstacleInfo>[] = [];
-    private _decorations: Readonly<DecorationInfo>[] = [];
+    private readonly _info: TrackInfo;
+    private readonly _size = new Size();
+    private readonly _tiles: TileArray = [];
+    private readonly _start: Checkpoint;
+    private readonly _checkpoints: Checkpoint[] = [];
+    private readonly _pathfinders: Pathfinder[] = [];
+    private readonly _obstacles: Readonly<ObstacleInfo>[] = [];
+    private readonly _decorations: Readonly<DecorationInfo>[] = [];
 
     constructor(info: TrackInfo) {
-        this.name = info.name;
-        this.material = info.material;
+        this._info = info;
         for (const offsetStr in info.tiles) {
             const offset = offsetFromString(offsetStr);
             this._size.set(Math.max(this._size.width, offset.x + 1), Math.max(this._size.height, offset.y + 1));
         }
         for (const offsetStr in info.tiles) {
             const offset = offsetFromString(offsetStr);
-            const tile = new Tile(offset, info.tiles[offsetStr]);
+            const other = info.tiles[offsetStr];
+            if (!other) {
+                throw new Error('missing tile ' + offsetStr);
+            }
+            const tile = new Tile(offset, other);
             this._tiles[this._size.index(offset.x, offset.y)] = tile;
             if (tile.checkpoint) {
                 this._checkpoints[tile.checkpoint.index] = tile.checkpoint;
@@ -58,6 +49,14 @@ export class Track {
         }
         this._obstacles = info.obstacles ?? [];
         this._decorations = info.decorations ?? [];
+    }
+
+    get name() {
+        return this._info.name;
+    }
+
+    get material() {
+        return this._info.material;
     }
 
     get size(): SizeLike {
@@ -82,6 +81,10 @@ export class Track {
 
     get decorations(): readonly DecorationInfo[] {
         return this._decorations;
+    }
+
+    getInfo() {
+        return copyTrackInfo(this._info);
     }
 
     getTile(x: number, y: number) {

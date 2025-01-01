@@ -4,8 +4,8 @@ import { GameUi, GREEN_BUTTON_COLOR, makeButton } from "./game-ui";
 const TITLE_DURATION = 1000;
 
 export async function titleUi(gameUi: GameUi, elem: HTMLElement) {
+    
     elem.innerHTML = '';
-        
     elem.style.setProperty('inset', '0');
     elem.style.setProperty('display', 'flex');
     elem.style.setProperty('flex-direction', 'column');

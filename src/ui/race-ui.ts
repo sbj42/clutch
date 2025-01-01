@@ -11,7 +11,7 @@ import { Checkpoint } from "../track/checkpoint";
 import { ObstacleUi } from "./obstacle-ui";
 import { RaceAudio } from "./race-audio";
 import { timeToString } from "../util/time";
-import { getDecorationImage } from "./decoration-ui";
+import { getDecorationUi } from "./decoration-ui";
 
 export type RaceUiOptions = {
     wireframe?: boolean;
@@ -117,7 +117,7 @@ export class RaceUi {
         }
 
         for (const decoration of track.decorations) {
-            const image = getDecorationImage(decoration);
+            const image = getDecorationUi(decoration);
             this._trackLayer.appendChild(image);
         }
 

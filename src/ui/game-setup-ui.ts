@@ -9,6 +9,7 @@ import { TRACKS } from "../track/tracks";
 
 export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
     
+    elem.innerHTML = '';
     elem.style.setProperty('inset', '0');
     elem.style.setProperty('display', 'flex');
     elem.style.setProperty('flex-direction', 'column');

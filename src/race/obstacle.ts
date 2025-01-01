@@ -4,7 +4,7 @@ import { ObstacleInfo } from "../track/obstacle";
 import { TILE_SIZE } from "../track/tile";
 import { Size } from "tiled-geometry";
 
-export type ObstacleType = 'cone' | 'barrel';
+export type ObstacleType = 'cone' | 'barrel' | 'tire';
 
 function _parseObstacleType(str: string): ObstacleType {
     if (str === 'cone' || str === 'barrel') {
@@ -15,11 +15,13 @@ function _parseObstacleType(str: string): ObstacleType {
 
 const CONE_COLLISION_SIZE = new Size(14, 14);
 const BARREL_COLLISION_SIZE = new Size(23, 23);
+const TIRE_COLLISION_SIZE = new Size(30, 30);
 
 export function getObstacleCollisionSize(type: ObstacleType) {
     switch (type) {
         case 'cone': return CONE_COLLISION_SIZE;
         case 'barrel': return BARREL_COLLISION_SIZE;
+        case 'tire': return TIRE_COLLISION_SIZE;
         default: throw new Error('invalid obstacle type ' + type);
     }
 }

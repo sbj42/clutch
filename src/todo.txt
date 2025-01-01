@@ -1,4 +1,3 @@
-track editor
 shuffle weights for opponents
 characters for the other drivers
   yell at you when you hit them
@@ -9,7 +8,6 @@ more tracks
 browse high scores
 shortcuts
 decorations
-  trees (3d-ish second plane)
 damage
 debris
 sound
@@ -24,7 +22,9 @@ obstacles
     (maybe spills water later)
 hazards
   speed bump - if moving fast, car "flies": shadow appears for a while and player loses control
-  oil - player controls direction but not velocity for a while
+  oil - player controls direction but not velocity for a while after
+  ice - player controls direction but not velocity while on it
+  mud - slow
   potholes - slow down car? add random angle change?
 reverse
 more cars

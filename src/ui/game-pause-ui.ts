@@ -2,6 +2,7 @@ import { GameUi, GREEN_BUTTON_COLOR, makeButton, RED_BUTTON_COLOR, YELLOW_BUTTON
 
 export async function pauseUi(gameUi: GameUi, elem: HTMLElement) {
 
+    elem.innerHTML = '';
     elem.style.setProperty('inset', '0');
     elem.style.setProperty('display', 'flex');
     elem.style.setProperty('flex-direction', 'column');

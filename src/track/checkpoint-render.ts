@@ -9,6 +9,7 @@ export type CheckpointState = 'start' | 'finish' | 'next' | 'last' | 'inactive';
 
 export type CheckpointSvgOptions = {
     wireframe?: boolean;
+    showIndex?: boolean;
 }
 
 const CHECKPOINT_START_WIDTH = 12;
@@ -67,6 +68,7 @@ function makeCheckerboardPattern(doc: Document) {
 
 export function getCheckpointSvg(doc: Document, checkpoint: Checkpoint, state: CheckpointState, options?: CheckpointSvgOptions): SVGElement {
     const wireframe = options?.wireframe ?? false;
+    const showIndex = options?.showIndex ?? false;
     const size = TILE_SIZE;
     const halfSize = size / 2;
     const sqrt2 = Math.sqrt(2);
@@ -147,6 +149,17 @@ export function getCheckpointSvg(doc: Document, checkpoint: Checkpoint, state: C
                 }));
             }
         }
+    }
+
+    if (showIndex) {
+        svg.appendChild(makeSvgText(doc, {
+            x: size,
+            y: size,
+            size: 150,
+            bold: true,
+            color: 'white',
+            text: (checkpoint.index + 1).toString(),
+        }));
     }
 
     return svg;
