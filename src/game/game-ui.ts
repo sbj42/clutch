@@ -5,14 +5,9 @@ import { titleUi } from "./game-title-ui";
 import { setupUi } from "./game-setup-ui";
 import { pauseUi } from "./game-pause-ui";
 import { resultsUi } from "./game-results-ui";
+import { makeLayer } from "../ui/ui";
 
 export type GameState = 'title' | 'setup' | 'race';
-
-export const BACKGROUND_COLOR = 'rgb(29, 29, 29)';
-export const GREEN_BUTTON_COLOR = 'rgb(33, 129, 9)';
-export const YELLOW_BUTTON_COLOR = 'rgb(129, 117, 9)';
-export const RED_BUTTON_COLOR = 'rgb(129, 9, 9)';
-export const BUTTON_DISABLED_COLOR = 'rgb(107, 119, 104)';
 
 const NUM_LAPS = 3;
 
@@ -27,26 +22,25 @@ export class GameUi {
     private _wireframe: boolean;
     private _state: GameState = 'title';
     
-    private _titleLayer = this._makeLayer('game-title');
+    private _titleLayer = makeLayer('game-title');
     
-    private _trackLayer = this._makeLayer('game-track');
+    private _setupLayer = makeLayer('game-setup');
     
-    private _raceLayer = this._makeLayer('game-race');
+    private _raceLayer = makeLayer('game-race');
     
     private _paused = false;
-    private _pauseLayer = this._makeLayer('game-pause');
+    private _pauseLayer = makeLayer('game-pause');
 
     private _results = false;
-    private _resultsLayer = this._makeLayer('game-results');
+    private _resultsLayer = makeLayer('game-results');
     
     constructor(elem: HTMLElement, options?: GameUiOptions) {
         this._elem = elem;
         this._wireframe = options?.wireframe ?? false;
-        elem.style.setProperty('background-color', BACKGROUND_COLOR);
-        elem.style.setProperty('color', 'white');
-        elem.style.setProperty('font-family', 'sans-serif');
 
         this.doTitle();
+
+        this._raceLayer.classList.add('fill');
 
         document.addEventListener('keydown', (event) => this._onKeydown(event));
     }
@@ -72,21 +66,18 @@ export class GameUi {
     doSetup() {
         this._state = 'setup';
         this._stopRace();
-        this._trackLayer.innerHTML = '';
+        this._setupLayer.innerHTML = '';
         this._elem.innerHTML = '';
-        this._elem.appendChild(this._trackLayer);
+        this._elem.appendChild(this._setupLayer);
 
-        setupUi(this, this._trackLayer);
+        setupUi(this, this._setupLayer);
     }
 
     doRace(track: Track, difficulty: Difficulty) {
         this._state = 'race';
         this._stopRace();
-        this._raceLayer.innerHTML = '';
         this._elem.innerHTML = '';
         this._elem.appendChild(this._raceLayer);
-
-        this._raceLayer.style.setProperty('inset', '0');
 
         this._raceLayer.animate([
             { opacity: 0 },
@@ -117,19 +108,10 @@ export class GameUi {
         this._resultsLayer.innerHTML = '';
         this._elem.appendChild(this._resultsLayer);
 
-        this._resultsLayer.style.setProperty('inset', '0');
-
         resultsUi(this, this._resultsLayer);
     }
 
     //#region Internal
-
-    private _makeLayer(id: string) {
-        const layer = document.createElement('div');
-        layer.id = id;
-        layer.style.setProperty('position', 'absolute');
-        return layer;
-    }
 
     private _onKeydown(event: KeyboardEvent) {
         if (event.key === 'Escape') {
@@ -188,26 +170,4 @@ export class GameUi {
     }
 
     //#endregion
-}
-
-export function makeButton(color: string, text: string, callback: () => void) {
-    const button = document.createElement('button');
-    button.textContent = text;
-    button.style.setProperty('font-size', '30px');
-    button.style.setProperty('border', '1px solid rgb(255, 255, 255)');
-    button.style.setProperty('background-color', color);
-    button.style.setProperty('color', 'white');
-    button.style.setProperty('padding', '5px 20px');
-    button.addEventListener('mouseenter', () => {
-        if (!button.hasAttribute('disabled')) {
-            button.style.setProperty('filter', 'brightness(1.2)');
-        }
-    });
-    button.addEventListener('mouseleave', () => {
-        button.style.setProperty('filter', 'brightness(1)');
-    });
-    button.addEventListener('click', () => {
-        callback();
-    });
-    return button;
 }

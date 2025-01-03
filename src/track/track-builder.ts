@@ -2,7 +2,7 @@ import { directionOpposite, directionToString, Offset, type Direction } from "ti
 import { Track } from "./track";
 import { TrackInfo, type Material } from './track-info';
 import { ObstacleInfo } from './obstacle';
-import { CheckpointInfo } from "./checkpoint";
+import { StartInfo } from "./checkpoint";
 import { TileInfo } from "./tile";
 import { TrackWidth } from "./tile-exit";
 import type { DecorationInfo } from "./decoration";
@@ -15,8 +15,7 @@ export class TrackBuilder {
     private readonly _name: string;
     private readonly _material: Material;
     private readonly _tiles: Record<string, TileInfo> = {};
-    private readonly _startOffset = new Offset();
-    private readonly _startInfo: CheckpointInfo;
+    private readonly _startInfo: StartInfo;
     private readonly _obstacles: ObstacleInfo[] = [];
     private readonly _decorations: DecorationInfo[] = [];
 
@@ -30,9 +29,8 @@ export class TrackBuilder {
         this._material = options?.material ?? 'road';
         this.moveTo(x, y);
         this.go(startDirection);
-        this._startOffset.copyFrom(this._offset);
         this._startInfo = {
-            index: -1,
+            offset: this._offset.toString(),
             direction: directionToString(directionOpposite(startDirection)),
         };
     }
@@ -106,7 +104,6 @@ export class TrackBuilder {
         const ret: TrackInfo = {
             name: this._name,
             material: this._material,
-            startOffset: this._startOffset.toString(),
             start: this._startInfo,
             tiles: this._tiles,
         };

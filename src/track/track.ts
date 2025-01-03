@@ -37,7 +37,7 @@ export class Track {
                 this._checkpoints[tile.checkpoint.index] = tile.checkpoint;
             }
         }
-        const startOffset = offsetFromString(info.startOffset);
+        const startOffset = offsetFromString(info.start.offset);
         const startTile = this.getTile(startOffset.x, startOffset.y);
         if (!startTile) {
             throw new Error('invalid start');

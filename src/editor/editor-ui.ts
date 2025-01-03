@@ -1,8 +1,9 @@
-import { Track } from '../track/track';
 import { type TrackInfo } from '../track/track-info';
-import { DOGBONE } from '../track/tracks/dogbone';
+import { makeLayer, makeLink, Select, SelectOption } from '../ui/ui';
 import { setupThingsUi } from './editor-things-ui';
 import { setupTrackUi } from './editor-track-ui';
+import { unsavedUi } from './editor-unsaved-ui';
+import { saveAs } from 'file-saver';
 
 export const BACKGROUND_COLOR = 'rgb(29, 29, 29)';
 
@@ -22,104 +23,53 @@ export class EditorUi {
     private _mode: Mode = 'track';
 
     private _trackInfo: EditorTrackInfo;
+    private _changed = false;
 
-    private _saveLink: HTMLElement;
+    private _elem: HTMLElement;
+    private _fileInput = document.createElement('input');
     private _mainArea: HTMLElement;
-    private _trackLayer = this._makeLayer('editor-track');
-    private _thingsLayer = this._makeLayer('editor-things');
+    private _modeSelect: Select<Mode>;
+    private _trackLayer = makeLayer('editor-track');
+    private _thingsLayer = makeLayer('editor-things');
+    private _unsavedLayer = makeLayer('editor-unsaved');
 
     constructor(elem: HTMLElement) {
-        elem.style.setProperty('background-color', BACKGROUND_COLOR);
-        elem.style.setProperty('color', 'white');
-        elem.style.setProperty('font-family', 'sans-serif');
-        elem.style.setProperty('display', 'flex');
-        elem.style.setProperty('flex-direction', 'column');
+        this._elem = elem;
+        this._elem.classList.add('container');
+        
+        this._unsavedLayer.classList.add('container');
+
+        const topLayer = makeLayer('editor-top');
+        topLayer.classList.add('column-layout');
+        topLayer.classList.add('fill');
+        elem.appendChild(topLayer);
 
         const controlsArea = document.createElement('div');
-        controlsArea.style.setProperty('display', 'flex');
-        controlsArea.style.setProperty('flex-direction', 'row');
-        controlsArea.style.setProperty('gap', '20px');
-        controlsArea.style.setProperty('margin', '20px');
-        elem.appendChild(controlsArea);
+        controlsArea.classList.add('row-layout');
+        controlsArea.classList.add('padded');
+        topLayer.appendChild(controlsArea);
         
-        const fileInput = document.createElement('input');
-        fileInput.style.setProperty('display', 'none');
-        fileInput.type = 'file';
-        fileInput.accept = '.json';
-        fileInput.addEventListener('change', async () => {
-            if (fileInput.files) {
-                const file = fileInput.files[0];
-                const text = await file.text();
-                const trackInfo = JSON.parse(text);
-                this._trackInfo = trackInfo;
-                this.update();
-                setupTrackUi(this, this._trackLayer);
-            }
+        this._fileInput.style.setProperty('display', 'none');
+        this._fileInput.type = 'file';
+        this._fileInput.accept = '.json';
+        this._fileInput.addEventListener('change', () => {
+            void this._onFileChange();
         });
-        controlsArea.appendChild(fileInput);
+        controlsArea.appendChild(this._fileInput);
 
-        const newLink = document.createElement('a');
-        newLink.textContent = 'New';
-        newLink.style.setProperty('background-color', 'inherit');
-        newLink.style.setProperty('color', 'inherit');
-        newLink.style.setProperty('font', 'inherit');
-        newLink.style.setProperty('text-decoration', 'none');
-        controlsArea.appendChild(newLink);
-        newLink.addEventListener('click', () => {
-            this._trackInfo = makeNewTrack();
-            this.update();
-            setupTrackUi(this, this._trackLayer);
-        });
+        controlsArea.appendChild(makeLink('New', () => {
+            this._onNew();
+        }));
+        controlsArea.appendChild(makeLink('Load', () => {
+            this._onLoad();
+        }));
+        controlsArea.appendChild(makeLink('Save', () => {
+            this._onSave();
+        }));
 
-        const loadLink = document.createElement('a');
-        loadLink.textContent = 'Load';
-        loadLink.style.setProperty('background-color', 'inherit');
-        loadLink.style.setProperty('color', 'inherit');
-        loadLink.style.setProperty('font', 'inherit');
-        loadLink.style.setProperty('text-decoration', 'none');
-        controlsArea.appendChild(loadLink);
-        loadLink.addEventListener('click', () => {
-            fileInput.click();
-        });
-
-        this._saveLink = document.createElement('a');
-        this._saveLink.setAttribute('href', '#');
-        this._saveLink.textContent = 'Save';
-        this._saveLink.style.setProperty('background-color', 'inherit');
-        this._saveLink.style.setProperty('color', 'inherit');
-        this._saveLink.style.setProperty('font', 'inherit');
-        this._saveLink.style.setProperty('text-decoration', 'none');
-        controlsArea.appendChild(this._saveLink);
-
-        const modeSelect = document.createElement('select');
-        modeSelect.style.setProperty('background', 'inherit');
-        modeSelect.style.setProperty('color', 'inherit');
-        modeSelect.style.setProperty('font', 'inherit');
-        modeSelect.style.setProperty('scrollbar-color', `rgb(121, 58, 48) ${BACKGROUND_COLOR}`);
-        modeSelect.style.setProperty('overflow', 'auto');
-        controlsArea.appendChild(modeSelect);
-
-        const modes: { label: string, value: Mode }[] = [
-            { label: 'Track', value: 'track' },
-            { label: 'Things', value: 'things' },
-        ];
-        
-        for (const mode of modes) {
-            const option = document.createElement('option');
-            option.style.setProperty('background', BACKGROUND_COLOR);
-            option.style.setProperty('color', 'white');
-            option.style.setProperty('font-family', 'sans-serif');
-            option.style.setProperty('font-size', '20px');
-            option.style.setProperty('padding', '3px 10px');
-            option.textContent = mode.label;
-            if (mode.value === this._mode) {
-                option.setAttribute('selected', 'selected');
-            }
-            modeSelect.appendChild(option);
-        }
-        modeSelect.addEventListener('change', () => {
-            this._mode = modes[modeSelect.selectedIndex].value;
-            switch (this._mode) {
+        this._modeSelect = new Select(this._mode, (mode) => {
+            this._mode = mode;
+            switch (mode) {
                 case 'track':
                     this.doTrack();
                     break;
@@ -128,14 +78,19 @@ export class EditorUi {
                     break;
             }
         });
+        controlsArea.appendChild(this._modeSelect.element);
 
         this._mainArea = document.createElement('div');
-        this._mainArea.style.setProperty('position', 'relative');
+        this._mainArea.classList.add('container');
         this._mainArea.style.setProperty('flex', '1');
-        elem.appendChild(this._mainArea);
+        topLayer.appendChild(this._mainArea);
 
-        this._trackInfo = DOGBONE.getInfo();
+        this._trackLayer.classList.add('fill');
+        this._thingsLayer.classList.add('fill');
+
+        this._trackInfo = makeNewTrack();
         this.doTrack();
+        this._updateModeSelect();
 
         document.addEventListener('keydown', (event) => this._onKeydown(event));
     }
@@ -159,20 +114,72 @@ export class EditorUi {
     }
 
     update() {
-        this._saveLink.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this._trackInfo)));        
-        this._saveLink.setAttribute('download', (this._trackInfo.name || 'track') + '.json');
+        this._updateModeSelect();
+        this._changed = true;
     }
 
     //#region Internal
 
-    private _makeLayer(id: string) {
-        const layer = document.createElement('div');
-        layer.id = id;
-        layer.style.setProperty('position', 'absolute');
-        return layer;
+    private _checkUnsaved(next: () => void) {
+        if (this._changed) {
+            this._elem.appendChild(this._unsavedLayer);
+            unsavedUi(this, this._unsavedLayer, () => {
+                this._elem.removeChild(this._unsavedLayer);
+            }, () => {
+                this._elem.removeChild(this._unsavedLayer);
+                next();
+            });
+        } else {
+            next();
+        }
     }
 
     private _onKeydown(event: KeyboardEvent) {
+    }
+
+    private _onNew() {
+        this._checkUnsaved(() => {
+            this._trackInfo = makeNewTrack();
+            this.update();
+            setupTrackUi(this, this._trackLayer);
+            this._changed = false;
+        });
+    }
+
+    private _onLoad() {
+        this._checkUnsaved(() => {
+            this._fileInput.click();
+        });
+    }
+
+    private _onSave() {
+        const blob = new Blob([JSON.stringify(this._trackInfo, undefined, 2)], { type: 'application/json;charset=utf-8' });
+        saveAs(blob, (this._trackInfo.name || 'track') + '.json');
+        this._changed = false;
+    }
+
+    private async _onFileChange() {
+        if (this._fileInput.files) {
+            const file = this._fileInput.files[0];
+            const text = await file.text();
+            const trackInfo = JSON.parse(text);
+            this._trackInfo = trackInfo;
+            this.update();
+            setupTrackUi(this, this._trackLayer);
+        }
+    }
+
+    private _updateModeSelect() {
+        const modes: SelectOption<Mode>[] = [
+            { label: 'Track', key: 'track' },
+        ];
+        if ('start' in this._trackInfo) {
+            modes.push({ label: 'Things', key: 'things' });
+        } else if (this._mode === 'things') {
+            this.doTrack();
+        }
+
+        this._modeSelect.setOptions(modes);
     }
 
     //#endregion

@@ -1,0 +1,152 @@
+$background: rgb(29, 29, 29);
+$foreground: rgb(255, 255, 255);
+$selected-background: rgb(29, 90, 168);
+$selected-foreground: $foreground;
+
+$dialog-background: rgb(0, 0, 0);
+$dialog-border: 2px solid rgb(49, 49, 49);
+$dialog-shadow: 6px 6px 4px rgba(0, 0, 0, 0.5);
+
+$button-border: 1px solid rgb(255, 255, 255);
+$button-green-background: rgb(33, 129, 9);
+$button-yellow-background: rgb(129, 117, 9);
+$button-red-background: rgb(129, 9, 9);
+$button-disabled-background: rgb(107, 119, 104);
+
+$glow-shadow: 0 0 6px rgba(255, 255, 0, 0.75);
+
+$scrollbar: rgb(121, 58, 48);
+$font-family: sans-serif;
+$font-size: 16px;
+$gap: 10px;
+$padding: 10px 20px;
+
+$status-font-size: 50px;
+$countdown-font-size: 200px;
+$minimap-background: rgba(0, 0, 0, 0.5);
+$minimap-border: 1px solid rgb(128, 128, 128);
+
+body {
+    margin: 0;
+    background: $background;
+    color: $foreground;
+    font-family: $font-family;
+    font-size: $font-size;
+    scrollbar-color: $scrollbar $background;
+}
+
+body, #ui, .fill {
+    position: absolute;
+    inset: 0;
+}
+
+a, input, select, button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+select {
+    overflow: auto;
+}
+
+option {
+    background: $background;
+    color: $foreground
+}
+
+option:checked {
+    background: $selected-background;
+    color: $selected-foreground;
+}
+
+.dialog {
+    @extend .column-layout;
+    background-color: $dialog-background;
+    border: $dialog-border;
+    box-shadow: $dialog-shadow;
+    gap: $gap;
+    padding: $padding;
+}
+
+.button {
+    border: $button-border;
+    padding: $padding;
+    cursor: pointer;
+}
+
+.button.green {
+    background-color: $button-green-background;
+}
+
+.button.yellow {
+    background-color: $button-yellow-background;
+}
+
+.button.red {
+    background-color: $button-red-background;
+}
+
+.button:disabled {
+    background-color: $button-disabled-background;
+    opacity: 0.5;
+    cursor: default;
+}
+
+.container {
+    position: relative;
+}
+
+.center {
+    justify-content: center;
+    align-items: center;
+}
+
+.scrollable {
+    overflow: auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+.layer {
+    position: absolute;
+}
+
+.column-layout {
+    display: flex;
+    flex-direction: column;
+}
+
+.row-layout {
+    display: flex;
+    flex-direction: row;
+}
+
+.padded {
+    gap: $gap;
+    padding: $padding;
+}
+
+.glow {
+    font-style: italic;
+    text-shadow: $glow-shadow
+}
+
+.race-status {
+    top: 0;
+    left: 0;
+    font-size: $status-font-size;
+}
+
+.race-countdown {
+    font-size: $countdown-font-size;
+}
+
+.race-minimap {
+    top: 0;
+    right: 0;
+    background-color: $minimap-background;
+    border: $minimap-border;
+}

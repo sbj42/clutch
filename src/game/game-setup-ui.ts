@@ -1,0 +1,130 @@
+import { Size } from "tiled-geometry";
+import { TILE_SIZE } from "../track/tile";
+import { GameUi } from "./game-ui";
+import { getTileSvg } from "../track/tile-render";
+import { getCheckpointSvg } from "../track/checkpoint-render";
+import { Track } from "../track/track";
+import { Difficulty } from "../race/race";
+import { TRACKS } from "../track/tracks";
+import { makeButton, Select } from "../ui/ui";
+import { TrackInfo } from "../track/track-info";
+
+export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
+
+    let track: TrackInfo | undefined;
+    let difficulty: Difficulty = 'normal';
+
+    const go = () => {
+        if (track) {
+            gameUi.doRace(new Track(track), difficulty);
+        }
+    };
+    
+    elem.innerHTML = '';
+    elem.classList.add('fill');
+    elem.classList.add('column-layout');
+    elem.classList.add('padded');
+
+    elem.animate([
+        { opacity: 0 },
+        { opacity: 1 },
+    ], { duration: 400 });
+
+    const instruction = document.createElement('div');
+    instruction.textContent = 'GET READY';
+    instruction.classList.add('glow');
+    instruction.style.setProperty('text-align', 'center');
+    instruction.style.setProperty('font-size', '300%');
+    elem.appendChild(instruction);
+
+    const split = document.createElement('div');
+    split.classList.add('row-layout');
+    split.style.setProperty('flex', '1');
+    elem.appendChild(split);
+
+    const listSide = document.createElement('div');
+    listSide.classList.add('column-layout');
+    listSide.classList.add('padded');
+    split.appendChild(listSide);
+
+    const trackLabel = document.createElement('div');
+    trackLabel.textContent = 'TRACK:';
+    listSide.appendChild(trackLabel);
+
+    const trackSelect = new Select<string>(undefined, (trackName) => {
+        goButton.removeAttribute('disabled');
+
+        track = TRACKS.find((track) => track.name === trackName);
+        preview.innerHTML = '';
+        if (track) {
+            trackPreview(preview, new Track(track));
+        }
+    });
+    trackSelect.setOptions(TRACKS.map((track) => ({ label: track.name, key: track.name })), 10);
+    listSide.appendChild(trackSelect.element);
+    trackSelect.element.focus();
+
+    trackSelect.element.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            go();
+        }
+    });
+
+    const difficultyLabel = document.createElement('div');
+    difficultyLabel.textContent = 'DIFFICULTY:';
+    listSide.appendChild(difficultyLabel);
+
+    const difficultySelect = new Select<Difficulty>(difficulty, (value) => {
+        difficulty = value;
+    });
+    difficultySelect.setOptions([
+        { label: 'EASY', key: 'easy' },
+        { label: 'NORMAL', key: 'normal' },
+        { label: 'HARD', key: 'hard' },
+    ]);
+    listSide.appendChild(difficultySelect.element);
+
+    const goButton = makeButton('GO', 'green', go);
+    goButton.setAttribute('disabled', 'disabled');
+    goButton.style.setProperty('margin-top', '20px');
+    listSide.appendChild(goButton);
+
+    const previewSide = document.createElement('div');
+    previewSide.classList.add('column-layout');
+    previewSide.classList.add('center');
+    previewSide.style.setProperty('flex', '1');
+    split.appendChild(previewSide);
+
+    const preview = document.createElement('div');
+    previewSide.appendChild(preview);
+}
+
+function trackPreview(elem: HTMLElement, track: Track) {
+    const scale = 600 / Math.max(track.size.width, track.size.height) / TILE_SIZE;
+    elem.style.setProperty('width', `${track.size.width * TILE_SIZE * scale}px`);
+    elem.style.setProperty('height', `${track.size.height * TILE_SIZE * scale}px`);
+    const inner = document.createElement('div');
+    inner.style.setProperty('width', `${track.size.width * TILE_SIZE}px`);
+    inner.style.setProperty('height', `${track.size.height * TILE_SIZE}px`);
+    inner.style.setProperty('transform', `scale(${scale})`);
+    inner.style.setProperty('transform-origin', '0 0');
+    elem.appendChild(inner);
+    
+    for (const offset of new Size().copyFrom(track.size).offsets()) {
+        const tile = track.getTile(offset.x, offset.y);
+        const svg = getTileSvg(document, track, tile);
+        if (svg) {
+            svg.style.setProperty('position', 'absolute');
+            svg.style.setProperty('left', `${TILE_SIZE * (offset.x - 0.5)}px`);
+            svg.style.setProperty('top', `${TILE_SIZE * (offset.y - 0.5)}px`);
+            inner.appendChild(svg);
+        }
+    }
+    const start = track.start;
+    const startOffset = start.tile.offset;
+    const startSvg = getCheckpointSvg(document, start, 'start');
+    startSvg.style.setProperty('position', 'absolute');
+    startSvg.style.setProperty('left', `${TILE_SIZE * (startOffset.x - 0.5)}px`);
+    startSvg.style.setProperty('top', `${TILE_SIZE * (startOffset.y - 0.5)}px`);
+    inner.appendChild(startSvg);
+}

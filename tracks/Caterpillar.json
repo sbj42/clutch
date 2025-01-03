@@ -1,0 +1,122 @@
+{
+  "name": "Caterpillar",
+  "material": "dirt",
+  "start": {
+    "offset": "(1,0)",
+    "direction": "W"
+  },
+  "tiles": {
+    "(0,0)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 1,
+        "direction": "E"
+      }
+    },
+    "(1,0)": {
+      "exits": {
+        "W": {
+          "trackWidth": "standard"
+        },
+        "SE": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(2,1)": {
+      "exits": {
+        "NW": {
+          "trackWidth": "standard"
+        },
+        "NE": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(3,0)": {
+      "exits": {
+        "SW": {
+          "trackWidth": "standard"
+        },
+        "E": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(4,0)": {
+      "exits": {
+        "W": {
+          "trackWidth": "standard"
+        },
+        "S": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(4,1)": {
+      "exits": {
+        "N": {
+          "trackWidth": "standard"
+        },
+        "E": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(5,1)": {
+      "exits": {
+        "W": {
+          "trackWidth": "standard"
+        },
+        "N": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(5,0)": {
+      "exits": {
+        "S": {
+          "trackWidth": "standard"
+        },
+        "E": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(6,0)": {
+      "exits": {
+        "W": {
+          "trackWidth": "standard"
+        },
+        "SE": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(7,1)": {
+      "exits": {
+        "NW": {
+          "trackWidth": "standard"
+        },
+        "E": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(8,1)": {
+      "exits": {
+        "W": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 0,
+        "direction": "W"
+      }
+    }
+  }
+}

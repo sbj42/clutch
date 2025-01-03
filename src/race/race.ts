@@ -6,7 +6,7 @@ import { Car } from "./car";
 import { Ai, AiType } from "../ai/ai";
 import { TILE_SIZE } from "../track/tile";
 import { getCheckpointSensor, getStartGrid } from "../track/checkpoint-render";
-import { getInputDirection } from "../ui/input";
+import { getInputDirection } from "../game/input";
 import { CarType, getAiCarType, getCarCollisionSize, getPlayerCarType } from "./car-type";
 import { Checkpoint } from "../track/checkpoint";
 import { Obstacle } from "./obstacle";

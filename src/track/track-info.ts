@@ -8,7 +8,6 @@ export type Material = 'dirt' | 'road';
 export type TrackInfo = {
     name: string;
     material: Material;
-    startOffset: string;
     start: StartInfo;
     tiles: Record<string, TileInfo | undefined>;
     obstacles?: ObstacleInfo[];
@@ -19,7 +18,6 @@ export function copyTrackInfo(info: TrackInfo): TrackInfo {
     return {
         name: info.name,
         material: info.material,
-        startOffset: info.startOffset,
         start: { ...info.start },
         tiles: { ...info.tiles },
         obstacles: info.obstacles?.map(obstacle => ({ ...obstacle })),

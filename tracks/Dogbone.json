@@ -1,0 +1,146 @@
+{
+  "name": "Dogbone",
+  "material": "dirt",
+  "start": {
+    "offset": "(2,0)",
+    "direction": "W"
+  },
+  "tiles": {
+    "(1,0)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        },
+        "W": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(2,0)": {
+      "exits": {
+        "W": {
+          "trackWidth": "standard"
+        },
+        "S": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 3,
+        "direction": "W"
+      }
+    },
+    "(2,1)": {
+      "exits": {
+        "N": {
+          "trackWidth": "standard"
+        },
+        "SE": {
+          "trackWidth": "narrow"
+        }
+      }
+    },
+    "(3,2)": {
+      "exits": {
+        "NW": {
+          "trackWidth": "narrow"
+        },
+        "E": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(4,2)": {
+      "exits": {
+        "W": {
+          "trackWidth": "standard"
+        },
+        "S": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 0,
+        "direction": "W"
+      }
+    },
+    "(4,3)": {
+      "exits": {
+        "N": {
+          "trackWidth": "standard"
+        },
+        "W": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(3,3)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        },
+        "W": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(2,3)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        },
+        "N": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 1,
+        "direction": "E"
+      }
+    },
+    "(2,2)": {
+      "exits": {
+        "S": {
+          "trackWidth": "standard"
+        },
+        "NW": {
+          "trackWidth": "narrow"
+        }
+      }
+    },
+    "(1,1)": {
+      "exits": {
+        "SE": {
+          "trackWidth": "narrow"
+        },
+        "W": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(0,1)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        },
+        "N": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 2,
+        "direction": "E"
+      }
+    },
+    "(0,0)": {
+      "exits": {
+        "S": {
+          "trackWidth": "standard"
+        },
+        "E": {
+          "trackWidth": "standard"
+        }
+      }
+    }
+  }
+}

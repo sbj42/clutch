@@ -1,8 +1,9 @@
-import { CATERPILLAR } from "./tracks/caterpillar";
-import { DOGBONE } from "./tracks/dogbone";
-import { HOOK } from "./tracks/hook";
-import { SLICK } from "./tracks/slick";
-import { TWISTER } from "./tracks/twister";
+import CATERPILLAR from "../../tracks/Caterpillar.json";
+import DOGBONE from "../../tracks/Dogbone.json";
+import HOOK from "../../tracks/Hook.json";
+import SLICK from "../../tracks/Slick.json";
+import TWISTER from "../../tracks/Twister.json";
+import { TrackInfo } from "./track-info";
 
 export const TRACKS = [
     DOGBONE,
@@ -10,4 +11,4 @@ export const TRACKS = [
     CATERPILLAR,
     SLICK,
     TWISTER,
-];
+] as TrackInfo[];

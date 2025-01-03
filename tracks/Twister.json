@@ -1,0 +1,230 @@
+{
+  "name": "Twister",
+  "material": "dirt",
+  "start": {
+    "offset": "(5,0)",
+    "direction": "W"
+  },
+  "tiles": {
+    "(4,0)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        },
+        "W": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(5,0)": {
+      "exits": {
+        "W": {
+          "trackWidth": "standard"
+        },
+        "SE": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 6,
+        "direction": "W"
+      }
+    },
+    "(6,1)": {
+      "exits": {
+        "NW": {
+          "trackWidth": "standard"
+        },
+        "S": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 0,
+        "direction": "NW"
+      }
+    },
+    "(6,2)": {
+      "exits": {
+        "N": {
+          "trackWidth": "standard"
+        },
+        "W": {
+          "trackWidth": "standard"
+        },
+        "SE": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(5,2)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        },
+        "W": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(4,2)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        },
+        "S": {
+          "trackWidth": "standard"
+        },
+        "W": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(4,3)": {
+      "exits": {
+        "N": {
+          "trackWidth": "standard"
+        },
+        "SE": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 1,
+        "direction": "N"
+      }
+    },
+    "(5,4)": {
+      "exits": {
+        "NW": {
+          "trackWidth": "standard"
+        },
+        "E": {
+          "trackWidth": "narrow"
+        }
+      }
+    },
+    "(6,4)": {
+      "exits": {
+        "W": {
+          "trackWidth": "narrow"
+        },
+        "NE": {
+          "trackWidth": "narrow"
+        }
+      }
+    },
+    "(7,3)": {
+      "exits": {
+        "SW": {
+          "trackWidth": "narrow"
+        },
+        "NW": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 2,
+        "direction": "SW"
+      }
+    },
+    "(3,2)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        },
+        "NW": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 3,
+        "direction": "E"
+      }
+    },
+    "(2,1)": {
+      "exits": {
+        "SE": {
+          "trackWidth": "standard"
+        },
+        "NW": {
+          "trackWidth": "standard"
+        },
+        "SW": {
+          "trackWidth": "narrow"
+        },
+        "NE": {
+          "trackWidth": "narrow"
+        }
+      }
+    },
+    "(1,0)": {
+      "exits": {
+        "SE": {
+          "trackWidth": "standard"
+        },
+        "W": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 4,
+        "direction": "SE"
+      }
+    },
+    "(0,0)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        },
+        "S": {
+          "trackWidth": "narrow"
+        }
+      }
+    },
+    "(0,1)": {
+      "exits": {
+        "N": {
+          "trackWidth": "narrow"
+        },
+        "S": {
+          "trackWidth": "narrow"
+        }
+      }
+    },
+    "(0,2)": {
+      "exits": {
+        "N": {
+          "trackWidth": "narrow"
+        },
+        "E": {
+          "trackWidth": "narrow"
+        }
+      },
+      "checkpoint": {
+        "index": 5,
+        "direction": "N"
+      }
+    },
+    "(1,2)": {
+      "exits": {
+        "W": {
+          "trackWidth": "narrow"
+        },
+        "NE": {
+          "trackWidth": "narrow"
+        }
+      }
+    },
+    "(3,0)": {
+      "exits": {
+        "SW": {
+          "trackWidth": "narrow"
+        },
+        "E": {
+          "trackWidth": "standard"
+        }
+      }
+    }
+  }
+}

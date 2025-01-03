@@ -12,6 +12,7 @@ import { ObstacleUi } from "./obstacle-ui";
 import { RaceAudio } from "./race-audio";
 import { timeToString } from "../util/time";
 import { getDecorationUi } from "./decoration-ui";
+import { makeLayer } from "../ui/ui";
 
 export type RaceUiOptions = {
     wireframe?: boolean;
@@ -23,21 +24,21 @@ export class RaceUi {
 
     private readonly _wireframe: boolean;
 
-    private readonly _mainDiv = this._makeLayer('race-main');
-    private readonly _trackLayer = this._makeLayer('main-track');
-    private readonly _checkpointLayer = this._makeLayer('main-checkpoints');
-    private readonly _markLayer = this._makeLayer('main-marks');
-    private readonly _thingLayer = this._makeLayer('main-things');
-    private readonly _airLayer = this._makeLayer('main-air');
+    private readonly _mainDiv = makeLayer('race-main');
+    private readonly _trackLayer = makeLayer('main-track');
+    private readonly _checkpointLayer = makeLayer('main-checkpoints');
+    private readonly _markLayer = makeLayer('main-marks');
+    private readonly _thingLayer = makeLayer('main-things');
+    private readonly _airLayer = makeLayer('main-air');
 
     private readonly _statusDiv: HTMLElement;
     private readonly _countdownDiv: HTMLElement;
 
     private readonly _miniScale: number;
-    private readonly _miniDiv = this._makeLayer('race-mini')
-    private readonly _miniTrackLayer = this._makeLayer('mini-track');
-    private readonly _miniCheckpointLayer = this._makeLayer('mini-checkpoints');
-    private readonly _miniThingLayer = this._makeLayer('mini-things');
+    private readonly _miniDiv = makeLayer('race-mini')
+    private readonly _miniTrackLayer = makeLayer('mini-track');
+    private readonly _miniCheckpointLayer = makeLayer('mini-checkpoints');
+    private readonly _miniThingLayer = makeLayer('mini-things');
 
     private readonly _carUis: CarUi[] = [];
     private readonly _obstacleUis: ObstacleUi[] = [];
@@ -50,8 +51,12 @@ export class RaceUi {
         this.race = race;
         this._wireframe = options?.wireframe ?? false;
         const track = race.track;
+        
+        elem.innerHTML = '';
+        elem.classList.add('fill');
+        elem.style.setProperty('overflow', 'hidden');
 
-        this._mainDiv.style.setProperty('inset', '0');
+        this._mainDiv.classList.add('fill');
         elem.appendChild(this._mainDiv);
 
         this._mainDiv.appendChild(this._trackLayer);
@@ -74,31 +79,23 @@ export class RaceUi {
 
         this._mainDiv.appendChild(this._airLayer);
 
-        this._statusDiv = this._makeLayer('status');
-        this._statusDiv.style.setProperty('top', '0');
-        this._statusDiv.style.setProperty('left', '0');
-        this._statusDiv.style.setProperty('font-size', '50px');
-        this._statusDiv.style.setProperty('color', 'white');
+        this._statusDiv = makeLayer('status');
+        this._statusDiv.classList.add('race-status');
         elem.appendChild(this._statusDiv);
-        const countdownOuter = this._makeLayer('countdown');
-        countdownOuter.style.setProperty('inset', '0');
-        countdownOuter.style.setProperty('display', 'flex');
-        countdownOuter.style.setProperty('align-items', 'center');
-        countdownOuter.style.setProperty('justify-content', 'center');
+        const countdownOuter = makeLayer('countdown');
+        countdownOuter.classList.add('race-countdown');
+        countdownOuter.classList.add('fill');
+        countdownOuter.classList.add('column-layout');
+        countdownOuter.classList.add('center');
         this._countdownDiv = document.createElement('div');
-        this._countdownDiv.style.setProperty('font-size', '200px');
-        this._countdownDiv.style.setProperty('color', 'white');
         countdownOuter.appendChild(this._countdownDiv);
         elem.appendChild(countdownOuter);
 
         this._miniScale = 200 / Math.max(track.size.width, track.size.height) / TILE_SIZE;
-        this._miniDiv = this._makeLayer('mini');
-        this._miniDiv.style.setProperty('top', '0');
-        this._miniDiv.style.setProperty('right', '0');
+        this._miniDiv = makeLayer('mini');
+        this._miniDiv.classList.add('race-minimap');
         this._miniDiv.style.setProperty('width', `${track.size.width * TILE_SIZE * this._miniScale}px`);
         this._miniDiv.style.setProperty('height', `${track.size.height * TILE_SIZE * this._miniScale}px`);
-        this._miniDiv.style.setProperty('background-color', 'black');
-        this._miniDiv.style.setProperty('border', '1px solid grey');
         elem.appendChild(this._miniDiv);
 
         this._miniTrackLayer.style.setProperty('scale', String(this._miniScale));
@@ -233,13 +230,6 @@ export class RaceUi {
     }
 
     //#region Internal
-
-    private _makeLayer(id: string) {
-        const layer = document.createElement('div');
-        layer.id = id;
-        layer.style.setProperty('position', 'absolute');
-        return layer;
-    }
 
     private _makeCheckpointUi(checkpoint: Checkpoint) {
         const offset = checkpoint.tile.offset;

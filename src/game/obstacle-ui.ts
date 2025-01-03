@@ -1,4 +1,3 @@
-import { Vector } from "matter-js";
 import type { RaceUi } from "./race-ui";
 import { Obstacle, ObstacleType } from "../race/obstacle";
 import { Image } from "./image";

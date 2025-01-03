@@ -1,5 +1,6 @@
+import { makeButton } from "../ui/ui";
 import { timeToString } from "../util/time";
-import { GameUi, GREEN_BUTTON_COLOR, makeButton, RED_BUTTON_COLOR, YELLOW_BUTTON_COLOR } from "./game-ui";
+import { GameUi } from "./game-ui";
 import { loadHighScores, saveHighScores } from "./high-scores";
 
 function ordinalToString(place: number) {
@@ -24,69 +25,52 @@ export async function resultsUi(gameUi: GameUi, elem: HTMLElement) {
     }
 
     elem.innerHTML = '';
-    elem.style.setProperty('inset', '0');
-    elem.style.setProperty('display', 'flex');
-    elem.style.setProperty('flex-direction', 'column');
-    elem.style.setProperty('justify-content', 'center');
-    elem.style.setProperty('align-items', 'center');
+    elem.classList.add('column-layout');
+    elem.classList.add('fill');
+    elem.classList.add('center');
 
     const dialog = document.createElement('div');
-    dialog.style.setProperty('display', 'flex');
-    dialog.style.setProperty('flex-direction', 'column');
-    dialog.style.setProperty('background-color', 'rgb(0, 0, 0)');
-    dialog.style.setProperty('border', '2px solid rgb(49, 49, 49)');
-    dialog.style.setProperty('padding', '20px');
-    dialog.style.setProperty('box-shadow', '6px 6px 4px rgba(0, 0, 0, 0.5)');
+    dialog.classList.add('dialog');
     elem.appendChild(dialog);
 
     const split = document.createElement('div');
-    split.style.setProperty('display', 'flex');
-    split.style.setProperty('flex-direction', 'row');
-    split.style.setProperty('gap', '20px');
+    split.classList.add('row-layout');
     dialog.appendChild(split);
 
     const resultSide = document.createElement('div');
-    resultSide.style.setProperty('display', 'flex');
-    resultSide.style.setProperty('flex-direction', 'column');
+    resultSide.classList.add('column-layout');
+    resultSide.classList.add('padded');
     resultSide.style.setProperty('align-items', 'center');
     split.appendChild(resultSide);
 
     const label = document.createElement('div');
     label.textContent = 'RESULT';
-    label.style.setProperty('font-size', '30px');
-    label.style.setProperty('margin-bottom', '20px');
     resultSide.appendChild(label);
 
     const trackText = document.createElement('div');
     trackText.textContent = race.track.name;
-    trackText.style.setProperty('font-size', '30px');
     resultSide.appendChild(trackText);
 
     const difficultyText = document.createElement('div');
     difficultyText.textContent = race.difficulty;
-    difficultyText.style.setProperty('font-size', '30px');
     resultSide.appendChild(difficultyText);
 
     const placeText = document.createElement('div');
     placeText.textContent = ordinalToString(finished.place) + ' place';
-    placeText.style.setProperty('font-size', '30px');
     resultSide.appendChild(placeText);
 
     const timeText = document.createElement('div');
     timeText.textContent = timeToString(finished.time);
-    timeText.style.setProperty('font-size', '30px');
     resultSide.appendChild(timeText);
 
     const highScoresSide = document.createElement('div');
-    highScoresSide.style.setProperty('display', 'flex');
-    highScoresSide.style.setProperty('flex-direction', 'column');
+    highScoresSide.classList.add('column-layout');
+    highScoresSide.classList.add('padded');
     highScoresSide.style.setProperty('align-items', 'center');
     split.appendChild(highScoresSide);
 
     const highScoresLabel = document.createElement('div');
     highScoresLabel.textContent = 'HIGH SCORES';
-    highScoresLabel.style.setProperty('font-size', '30px');
-    highScoresLabel.style.setProperty('margin-bottom', '20px');
     highScoresSide.appendChild(highScoresLabel);
 
     const scores = loadHighScores();
@@ -105,7 +89,6 @@ export async function resultsUi(gameUi: GameUi, elem: HTMLElement) {
         const score = difficultyScores[index];
         const scoreText = document.createElement('div');
         scoreText.textContent = `${index + 1}. ${timeToString(score?.time)}`;
-        scoreText.style.setProperty('font-size', '30px');
         if (index === placeIndex) {
             scoreText.style.setProperty('color', 'yellow');
         }
@@ -113,19 +96,17 @@ export async function resultsUi(gameUi: GameUi, elem: HTMLElement) {
     }
 
     const buttons = document.createElement('div');
-    buttons.style.setProperty('display', 'flex');
-    buttons.style.setProperty('flex-direction', 'row');
-    buttons.style.setProperty('margin-top', '20px');
-    buttons.style.setProperty('gap', '20px');
+    buttons.classList.add('row-layout');
+    buttons.classList.add('padded');
     dialog.appendChild(buttons);
 
-    const nextButton = makeButton(GREEN_BUTTON_COLOR, 'NEXT', () => {
+    const nextButton = makeButton('NEXT', 'green', () => {
         gameUi.doSetup();
     });
     buttons.appendChild(nextButton);
     nextButton.focus();
 
-    const restartButton = makeButton(YELLOW_BUTTON_COLOR, 'RESTART', () => {
+    const restartButton = makeButton('RESTART', 'yellow', () => {
         gameUi.doPause(false);
         if (gameUi.raceUi) {
             const lastRace = gameUi.raceUi.race;

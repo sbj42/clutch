@@ -3,6 +3,7 @@ import { Tile } from "./tile";
 import { directionFromString } from "../geom/direction-str";
 
 export type StartInfo = {
+    offset: string;
     direction: string;
 };
 

@@ -5,13 +5,14 @@ import { getCheckpointSvg } from "../track/checkpoint-render";
 import { Track } from "../track/track";
 import type { TrackInfo } from "../track/track-info";
 import { Size } from "tiled-geometry";
-import { getInputDirection } from "../ui/input";
-import { getObstacleImage, getObstacleSize } from "../ui/obstacle-ui";
+import { getInputDirection } from "../game/input";
+import { getObstacleImage, getObstacleSize } from "../game/obstacle-ui";
 import { ObstacleType } from "../race/obstacle";
 import { ObstacleInfo } from "../track/obstacle";
-import { DecorationType, getDecorationCenter, getDecorationImage, getDecorationSize } from "../ui/decoration-ui";
+import { DecorationType, getDecorationCenter, getDecorationImage, getDecorationSize } from "../game/decoration-ui";
 import { DecorationInfo } from "../track/decoration";
 import * as pressed from 'pressed';
+import { Select } from "../ui/ui";
 
 type Tool = 'obstacle' | 'decoration' | 'remove';
 
@@ -38,143 +39,83 @@ export async function setupThingsUi(editorUi: EditorUi, elem: HTMLElement) {
     let currentAngle: number = 0;
     
     elem.innerHTML = '';
-    elem.style.setProperty('inset', '0');
-    elem.style.setProperty('display', 'flex');
-    elem.style.setProperty('flex-direction', 'row');
-    elem.style.setProperty('font-size', '20px');
+    elem.classList.add('row-layout');
 
     const controlsSide = document.createElement('div');
-    controlsSide.style.setProperty('display', 'flex');
-    controlsSide.style.setProperty('flex-direction', 'column');
-    controlsSide.style.setProperty('gap', '10px');
-    controlsSide.style.setProperty('padding', '10px');
+    controlsSide.classList.add('column-layout');
+    controlsSide.classList.add('padded');
     elem.appendChild(controlsSide);
 
     const toolLabel = document.createElement('div');
     toolLabel.textContent = 'Tool:';
     controlsSide.appendChild(toolLabel);
 
-    const toolSelect = document.createElement('select');
-    toolSelect.setAttribute('size', '3');
-    toolSelect.style.setProperty('background', 'inherit');
-    toolSelect.style.setProperty('color', 'inherit');
-    toolSelect.style.setProperty('font', 'inherit');
-    toolSelect.style.setProperty('scrollbar-color', `rgb(121, 58, 48) ${BACKGROUND_COLOR}`);
-    toolSelect.style.setProperty('overflow', 'auto');
-    controlsSide.appendChild(toolSelect);
-
-    const tools: { label: string, value: Tool }[] = [
-        { label: 'Add Obstacle', value: 'obstacle' },
-        { label: 'Add Decoration', value: 'decoration' },
-        { label: 'Remove', value: 'remove' },
-    ];
-
-    for (const tool of tools) {
-        const option = document.createElement('option');
-        option.style.setProperty('padding', '3px 10px');
-        option.textContent = tool.label;
-        if (tool.value === currentTool) {
-            option.setAttribute('selected', 'selected');
-        }
-        toolSelect.appendChild(option);
-    }
-    toolSelect.addEventListener('change', () => {
-        currentTool = tools[toolSelect.selectedIndex].value as Tool;
+    const toolSelect = new Select<Tool>(currentTool, (tool) => {
+        currentTool = tool;
         updateToolControls();
         addImage.parentElement?.removeChild(addImage);
     });
-    toolSelect.focus();
+    controlsSide.appendChild(toolSelect.element);
+    toolSelect.element.focus();
+    toolSelect.setOptions([
+        { label: 'Add Obstacle', key: 'obstacle' },
+        { label: 'Add Decoration', key: 'decoration' },
+        { label: 'Remove', key: 'remove' },
+    ]);
 
     const obstacleTypeLabel = document.createElement('div');
     obstacleTypeLabel.textContent = 'Obstacle Type:';
     controlsSide.appendChild(obstacleTypeLabel);
 
-    const obstacleTypeSelect = document.createElement('select');
-    obstacleTypeSelect.setAttribute('size', '12');
-    obstacleTypeSelect.style.setProperty('background', 'inherit');
-    obstacleTypeSelect.style.setProperty('color', 'inherit');
-    obstacleTypeSelect.style.setProperty('font', 'inherit');
-    obstacleTypeSelect.style.setProperty('scrollbar-color', `rgb(121, 58, 48) ${BACKGROUND_COLOR}`);
-    obstacleTypeSelect.style.setProperty('overflow', 'auto');
-    controlsSide.appendChild(obstacleTypeSelect);
-
-    const obstacleTypes: { label: string, value: ObstacleType }[] = [
-        { label: 'Cone', value: 'cone' },
-        { label: 'Barrel', value: 'barrel' },
-        { label: 'Tire', value: 'tire' },
-    ];
-
-    for (const obstacleType of obstacleTypes) {
-        const option = document.createElement('option');
-        option.style.setProperty('padding', '3px 10px');
-        option.textContent = obstacleType.label;
-        if (obstacleType.value === currentObstacleType) {
-            option.setAttribute('selected', 'selected');
-        }
-        obstacleTypeSelect.appendChild(option);
-    }
-    obstacleTypeSelect.addEventListener('change', () => {
-        currentObstacleType = obstacleTypes[obstacleTypeSelect.selectedIndex].value as ObstacleType;
+    const obstacleTypeSelect = new Select<ObstacleType>(currentObstacleType, (obstacleType) => {
+        currentObstacleType = obstacleType;
     });
+    controlsSide.appendChild(obstacleTypeSelect.element);
+    obstacleTypeSelect.setOptions([
+        { label: 'Cone', key: 'cone' },
+        { label: 'Barrel', key: 'barrel' },
+        { label: 'Tire', key: 'tire' },
+    ], 12);
 
     const decorationTypeLabel = document.createElement('div');
     decorationTypeLabel.textContent = 'Decoration Type:';
     controlsSide.appendChild(decorationTypeLabel);
 
-    const decorationTypeSelect = document.createElement('select');
-    decorationTypeSelect.setAttribute('size', '12');
-    decorationTypeSelect.style.setProperty('background', 'inherit');
-    decorationTypeSelect.style.setProperty('color', 'inherit');
-    decorationTypeSelect.style.setProperty('font', 'inherit');
-    decorationTypeSelect.style.setProperty('scrollbar-color', `rgb(121, 58, 48) ${BACKGROUND_COLOR}`);
-    decorationTypeSelect.style.setProperty('overflow', 'auto');
-    controlsSide.appendChild(decorationTypeSelect);
-
-    const decorationTypes: { label: string, value: DecorationType }[] = [
-        { label: 'Bush 1', value: 'bush1' },
-        { label: 'Bush 2', value: 'bush2' },
-        { label: 'Palm Tree 1', value: 'palmtree1' },
-        { label: 'Palm Tree 2', value: 'palmtree2' },
-        { label: 'Palm Tree 3', value: 'palmtree3' },
-        { label: 'Barrier 1', value: 'barrier1' },
-        { label: 'Barrier 2', value: 'barrier2' },
-    ];
-
-    for (const decorationType of decorationTypes) {
-        const option = document.createElement('option');
-        option.style.setProperty('padding', '3px 10px');
-        option.textContent = decorationType.label;
-        if (decorationType.value === currentDecorationType) {
-            option.setAttribute('selected', 'selected');
-        }
-        decorationTypeSelect.appendChild(option);
-    }
-    decorationTypeSelect.addEventListener('change', () => {
-        currentDecorationType = decorationTypes[decorationTypeSelect.selectedIndex].value as DecorationType;
+    const decorationTypeSelect = new Select<DecorationType>(currentDecorationType, (decorationType) => {
+        currentDecorationType = decorationType;
     });
+    controlsSide.appendChild(decorationTypeSelect.element);
+    decorationTypeSelect.setOptions([
+        { label: 'Bush 1', key: 'bush1' },
+        { label: 'Bush 2', key: 'bush2' },
+        { label: 'Palm Tree 1', key: 'palmtree1' },
+        { label: 'Palm Tree 2', key: 'palmtree2' },
+        { label: 'Palm Tree 3', key: 'palmtree3' },
+        { label: 'Barrier 1', key: 'barrier1' },
+        { label: 'Barrier 2', key: 'barrier2' },
+    ], 12);
 
     function updateToolControls() {
         obstacleTypeLabel.style.setProperty('display', currentTool === 'obstacle' ? 'block' : 'none');
-        obstacleTypeSelect.style.setProperty('display', currentTool === 'obstacle' ? 'block' : 'none');
+        obstacleTypeSelect.element.style.setProperty('display', currentTool === 'obstacle' ? 'block' : 'none');
         decorationTypeLabel.style.setProperty('display', currentTool === 'decoration' ? 'block' : 'none');
-        decorationTypeSelect.style.setProperty('display', currentTool === 'decoration' ? 'block' : 'none');
+        decorationTypeSelect.element.style.setProperty('display', currentTool === 'decoration' ? 'block' : 'none');
     }
     updateToolControls();
 
     const trackSide = document.createElement('div');
-    trackSide.style.setProperty('position', 'relative');
+    trackSide.classList.add('scrollable');
+    trackSide.classList.add('container');
     trackSide.style.setProperty('flex', '1');
-    trackSide.style.setProperty('overflow', 'auto');
-    trackSide.style.setProperty('scrollbar-color', `rgb(121, 58, 48) ${BACKGROUND_COLOR}`);
     elem.appendChild(trackSide);
 
     const tracksLayer = document.createElement('div');
-    tracksLayer.style.setProperty('position', `absolute`);
+    tracksLayer.classList.add('layer');
     tracksLayer.style.setProperty('pointer-events', 'none');
     trackSide.appendChild(tracksLayer);
 
     const thingsLayer = document.createElement('div');
-    thingsLayer.style.setProperty('position', `absolute`);
+    thingsLayer.classList.add('layer');
     trackSide.appendChild(thingsLayer);
 
     thingsLayer.addEventListener('mousemove', (event) => {

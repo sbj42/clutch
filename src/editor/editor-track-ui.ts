@@ -6,6 +6,7 @@ import { getCheckpointSvg } from "../track/checkpoint-render";
 import { Track } from "../track/track";
 import type { Material, TrackInfo } from "../track/track-info";
 import type { TrackWidth } from "../track/tile-exit";
+import { makeLayer, makeTextField, Select, SelectOption } from "../ui/ui";
 
 const SCALE = 1 / 6;
 
@@ -13,6 +14,211 @@ const GRID_COLOR = 'rgba(42, 198, 245, 0.5)';
 const GRID_HOVER_COLOR = 'rgba(242, 245, 42, 0.75)';
 const GRID_INVALID_COLOR = 'rgba(245, 42, 42, 0.75)';
 const GRID_SELECT_COLOR = 'rgba(242, 245, 42, 0.25)';
+
+type Tool = 'delete' | 'standard' | 'narrow' | 'start' | 'add-checkpoint' | 'remove-checkpoint';
+
+export async function setupTrackUi(editorUi: EditorUi, elem: HTMLElement) {
+    let currentTool: Tool = 'standard';
+    
+    elem.innerHTML = '';
+    elem.classList.add('row-layout');
+
+    const controlsSide = document.createElement('div');
+    controlsSide.classList.add('column-layout');
+    controlsSide.classList.add('padded');
+    elem.appendChild(controlsSide);
+
+    const nameLabel = document.createElement('div');
+    nameLabel.textContent = 'Track Name:';
+    controlsSide.appendChild(nameLabel);
+
+    const nameField = makeTextField(editorUi.trackInfo.name, 'Track Name', (value) => {
+        editorUi.trackInfo.name = value;
+        editorUi.update();
+    });
+    nameField.setAttribute('size', '10');
+    controlsSide.appendChild(nameField);
+    nameField.focus();
+
+    const materialLabel = document.createElement('div');
+    materialLabel.textContent = 'Material:';
+    controlsSide.appendChild(materialLabel);
+
+    const materialSelect = new Select<Material>(editorUi.trackInfo.material, (value) => {
+        editorUi.trackInfo.material = value;
+        editorUi.update();
+        update();
+    });
+    controlsSide.appendChild(materialSelect.element);
+    materialSelect.setOptions([
+        { label: 'Road', key: 'road' },
+        { label: 'Dirt', key: 'dirt' },
+    ]);
+
+    const toolLabel = document.createElement('div');
+    toolLabel.textContent = 'Tool:';
+    controlsSide.appendChild(toolLabel);
+
+    const toolSelect = new Select<Tool>(currentTool, (value) => {
+        currentTool = value;
+    });
+    controlsSide.appendChild(toolSelect.element);
+
+    function updateTools(track: Track | undefined = undefined) {
+        const tools: SelectOption<Tool>[] = [];
+        tools.push(
+            { label: 'Standard', key: 'standard' },
+            { label: 'Narrow', key: 'narrow' },
+        );
+        if (track) {
+            tools.push(
+                { label: 'Delete', key: 'delete' },
+                { label: `Move Start`, key: 'start' },
+                { label: `Add Checkpoint`, key: 'add-checkpoint' },
+                { label: `Remove Checkpoint`, key: 'remove-checkpoint' },
+            );
+        }
+        toolSelect.setOptions(tools, tools.length);
+    }
+
+    const trackSide = document.createElement('div');
+    trackSide.classList.add('scrollable');
+    trackSide.style.setProperty('flex', '1');
+    elem.appendChild(trackSide);
+
+    function update() {
+
+        const trackInfo = editorUi.trackInfo;
+        let track: Track | undefined;
+        if ('start' in trackInfo) {
+            track = new Track(trackInfo as TrackInfo);
+        }
+        updateTools(track);
+        const size = new Size();
+        if (track) {
+            size.copyFrom(track.size);
+        }
+        size.width = Math.max(size.width + 4, 8);
+        size.height = Math.max(size.height + 4, 8);
+
+        trackSide.innerHTML = '';
+        
+        const trackSideInner = document.createElement('div');
+        trackSideInner.style.setProperty('width', `${size.width * SCALE * TILE_SIZE}px`);
+        trackSideInner.style.setProperty('height', `${size.height * SCALE * TILE_SIZE}px`);
+        trackSideInner.classList.add('container');
+        trackSide.appendChild(trackSideInner);
+
+        const tracksLayer = makeLayer('tracks');
+        tracksLayer.style.setProperty('width', `${size.width * TILE_SIZE}px`);
+        tracksLayer.style.setProperty('height', `${size.height * TILE_SIZE}px`);
+        tracksLayer.style.setProperty('transform', `scale(${SCALE})`);
+        tracksLayer.style.setProperty('transform-origin', '0 0');
+        tracksLayer.style.setProperty('pointer-events', 'none');
+        trackSideInner.appendChild(tracksLayer);
+
+        const gridLayer = makeLayer('grid');
+        trackSideInner.appendChild(gridLayer);
+
+        let mouseDownOffset: OffsetLike | undefined;
+        let mouseOverOffset: OffsetLike | undefined;
+        let mouseDownGridRect: HTMLElement | undefined;
+        
+        for (const offset of size.offsets()) {
+            const gridRect = document.createElement('div');
+            gridRect.style.setProperty('position', 'absolute');
+            gridRect.style.setProperty('left', `${TILE_SIZE * SCALE * offset.x}px`);
+            gridRect.style.setProperty('top', `${TILE_SIZE * SCALE * offset.y}px`);
+            gridRect.style.setProperty('width', `${TILE_SIZE * SCALE + 1}px`);
+            gridRect.style.setProperty('height', `${TILE_SIZE * SCALE + 1}px`);
+            gridRect.style.setProperty('border', `1px dashed ${GRID_COLOR}`);
+            gridRect.style.setProperty('box-sizing', 'border-box');
+            gridLayer.appendChild(gridRect);
+            gridRect.addEventListener('mouseenter', () => {
+                mouseOverOffset = offset;
+                if (mouseDownOffset !== undefined && !isExitValid(trackInfo, mouseDownOffset, offset)) {
+                    gridRect.style.setProperty('border-color', GRID_INVALID_COLOR);
+                } else {
+                    gridRect.style.setProperty('border-color', GRID_HOVER_COLOR);
+                }
+                gridRect.style.setProperty('z-index', '1');
+            });
+            gridRect.addEventListener('mouseleave', () => {
+                mouseOverOffset = undefined;
+                gridRect.style.setProperty('border-color', GRID_COLOR);
+                gridRect.style.removeProperty('z-index');
+            });
+            gridRect.addEventListener('mousedown', (event) => {
+                if (currentTool === 'remove-checkpoint') {
+                    removeCheckpoint(trackInfo, offset);
+                    editorUi.update();
+                    update();
+                } else {
+                    mouseDownOffset = offset;
+                    mouseDownGridRect = gridRect;
+                    gridRect.style.setProperty('background-color', GRID_SELECT_COLOR);
+                }
+                event.preventDefault();
+            }, { capture: true });
+
+            if (track && offset.x < track.size.width && offset.y < track.size.height) {
+                const tile = track.getTile(offset.x, offset.y);
+                const svg = getTileSvg(document, track, tile);
+                if (svg) {
+                    svg.style.setProperty('position', 'absolute');
+                    svg.style.setProperty('left', `${TILE_SIZE * (offset.x - 0.5)}px`);
+                    svg.style.setProperty('top', `${TILE_SIZE * (offset.y - 0.5)}px`);
+                    tracksLayer.appendChild(svg);
+                }
+            }
+        }
+
+        gridLayer.addEventListener('mouseup', () => {
+            if (mouseDownOffset !== undefined && mouseOverOffset !== undefined && isExitValid(trackInfo, mouseDownOffset, mouseOverOffset)) {
+                if (currentTool === 'standard' || currentTool === 'narrow') {
+                    addTrack(trackInfo, mouseDownOffset, mouseOverOffset, currentTool);
+                } else if (currentTool === 'delete') {
+                    removeTrack(trackInfo, mouseDownOffset, mouseOverOffset);
+                } else if (currentTool === 'start') {
+                    setStart(trackInfo, mouseDownOffset, mouseOverOffset);
+                } else if (track && currentTool === 'add-checkpoint') {
+                    addCheckpoint(trackInfo, mouseDownOffset, mouseOverOffset, track.checkpoints.length);
+                }
+                editorUi.update();
+                update();
+            } else {
+                mouseDownGridRect?.style.removeProperty('background-color');
+            }
+            mouseDownOffset = undefined;
+            mouseDownGridRect = undefined;
+        });
+
+        if (track) {
+            const start = track.start;
+            const startOffset = start.tile.offset;
+            const startSvg = getCheckpointSvg(document, start, 'start');
+            startSvg.style.setProperty('position', 'absolute');
+            startSvg.style.setProperty('left', `${TILE_SIZE * (startOffset.x - 0.5)}px`);
+            startSvg.style.setProperty('top', `${TILE_SIZE * (startOffset.y - 0.5)}px`);
+            tracksLayer.appendChild(startSvg);
+
+            for (let index = 0; index < track.checkpoints.length; index++) {
+                const checkpoint = track.checkpoints[index];
+                const offset = checkpoint.tile.offset;
+                const finsishSameAsStart = index === track.checkpoints.length - 1 && offset.x === startOffset.x && offset.y === startOffset.y;
+                const status = index <= track.checkpoints.length - 1 ? 'next'
+                    : finsishSameAsStart ? 'next'
+                    : 'finish';
+                const svg = getCheckpointSvg(document, checkpoint, status, { showIndex: true});
+                svg.style.setProperty('position', 'absolute');
+                svg.style.setProperty('left', `${TILE_SIZE * (offset.x - 0.5)}px`);
+                svg.style.setProperty('top', `${TILE_SIZE * (offset.y - 0.5)}px`);
+                tracksLayer.appendChild(svg);
+            }
+        }
+    }
+    update();
+}
 
 function findDirection(from: Offset, to: Offset) {
     for (const dir of DIRECTIONS) {
@@ -71,8 +277,8 @@ function addTrack(track: EditorTrackInfo, from_: OffsetLike, to_: OffsetLike, tr
     fromTile.exits[directionToString(direction)] = { trackWidth };
     toTile.exits[directionToString(opposite)] = { trackWidth };
     if (!('start' in track)) {
-        track.startOffset = to.toString();
         track.start = {
+            offset: to.toString(),
             direction: directionToString(opposite),
         };
     }
@@ -86,8 +292,8 @@ function setStart(track: EditorTrackInfo, from_: OffsetLike, to_: OffsetLike) {
         return;
     }
     const opposite = directionOpposite(direction);
-    track.startOffset = to.toString();
     track.start = {
+        offset: to.toString(),
         direction: directionToString(opposite),
     };
 }
@@ -107,14 +313,14 @@ function removeTrack(track: EditorTrackInfo, from_: OffsetLike, to_: OffsetLike)
     }
     delete fromTile.exits[directionToString(direction)];
     if (fromTile.checkpoint?.direction === directionToString(direction)) {
-        removeCheckpointHelper(track, fromTile);
+        _removeCheckpointHelper(track, fromTile);
     }
     if (Object.keys(fromTile.exits).length === 0) {
         delete track.tiles[from.toString()];
     }
     delete toTile.exits[directionToString(opposite)];
     if (toTile.checkpoint?.direction === directionToString(opposite)) {
-        removeCheckpointHelper(track, toTile);
+        _removeCheckpointHelper(track, toTile);
     }
     if (Object.keys(toTile.exits).length === 0) {
         delete track.tiles[to.toString()];
@@ -145,10 +351,10 @@ function removeCheckpoint(track: EditorTrackInfo, off_: OffsetLike) {
     if (!tile) {
         return;
     }
-    removeCheckpointHelper(track, tile);
+    _removeCheckpointHelper(track, tile);
 }
 
-function removeCheckpointHelper(track: EditorTrackInfo, tile: TileInfo) {
+function _removeCheckpointHelper(track: EditorTrackInfo, tile: TileInfo) {
     const checkpoint = tile.checkpoint;
     tile.checkpoint = undefined;
     if (checkpoint) {
@@ -161,253 +367,4 @@ function removeCheckpointHelper(track: EditorTrackInfo, tile: TileInfo) {
             }
         }
     }
-}
-
-type Tool = 'delete' | 'standard' | 'narrow' | 'start' | 'add-checkpoint' | 'remove-checkpoint';
-
-export async function setupTrackUi(editorUi: EditorUi, elem: HTMLElement) {
-    let currentTool: Tool = 'standard';
-    
-    elem.innerHTML = '';
-    elem.style.setProperty('inset', '0');
-    elem.style.setProperty('display', 'flex');
-    elem.style.setProperty('flex-direction', 'row');
-    elem.style.setProperty('font-size', '20px');
-
-    const controlsSide = document.createElement('div');
-    controlsSide.style.setProperty('display', 'flex');
-    controlsSide.style.setProperty('flex-direction', 'column');
-    controlsSide.style.setProperty('gap', '10px');
-    controlsSide.style.setProperty('padding', '10px');
-    elem.appendChild(controlsSide);
-
-    const nameLabel = document.createElement('div');
-    nameLabel.textContent = 'Track Name:';
-    controlsSide.appendChild(nameLabel);
-
-    const nameField = document.createElement('input');
-    nameField.setAttribute('type', 'text');
-    nameField.setAttribute('placeholder', 'Track Name');
-    nameField.style.setProperty('background', 'inherit');
-    nameField.style.setProperty('color', 'inherit');
-    nameField.style.setProperty('font', 'inherit');
-    nameField.setAttribute('value', editorUi.trackInfo.name);
-    nameField.setAttribute('size', '10');
-    controlsSide.appendChild(nameField);
-    nameField.addEventListener('input', () => {
-        editorUi.trackInfo.name = nameField.value;
-    });
-    nameField.focus();
-
-    const materialLabel = document.createElement('div');
-    materialLabel.textContent = 'Material:';
-    controlsSide.appendChild(materialLabel);
-
-    const materialSelect = document.createElement('select');
-    materialSelect.style.setProperty('background', 'inherit');
-    materialSelect.style.setProperty('color', 'inherit');
-    materialSelect.style.setProperty('font', 'inherit');
-    materialSelect.style.setProperty('scrollbar-color', `rgb(121, 58, 48) ${BACKGROUND_COLOR}`);
-    materialSelect.style.setProperty('overflow', 'auto');
-    controlsSide.appendChild(materialSelect);
-
-    const materials: { label: string, value: Material }[] = [
-        { label: 'Road', value: 'road' },
-        { label: 'Dirt', value: 'dirt' },
-    ];
-
-    for (const material of materials) {
-        const option = document.createElement('option');
-        option.style.setProperty('background', BACKGROUND_COLOR);
-        option.style.setProperty('color', 'white');
-        option.style.setProperty('font-family', 'sans-serif');
-        option.style.setProperty('font-size', '20px');
-        option.style.setProperty('padding', '3px 10px');
-        option.textContent = material.label;
-        if (material.value === editorUi.trackInfo.material) {
-            option.setAttribute('selected', 'selected');
-        }
-        materialSelect.appendChild(option);
-    }
-    materialSelect.addEventListener('change', () => {
-        editorUi.trackInfo.material = materials[materialSelect.selectedIndex].value;
-        update();
-    });
-
-    const toolLabel = document.createElement('div');
-    toolLabel.textContent = 'Tool:';
-    controlsSide.appendChild(toolLabel);
-
-    const toolSelect = document.createElement('select');
-    toolSelect.setAttribute('size', '12');
-    toolSelect.style.setProperty('background', 'inherit');
-    toolSelect.style.setProperty('color', 'inherit');
-    toolSelect.style.setProperty('font', 'inherit');
-    toolSelect.style.setProperty('scrollbar-color', `rgb(121, 58, 48) ${BACKGROUND_COLOR}`);
-    toolSelect.style.setProperty('overflow', 'auto');
-    controlsSide.appendChild(toolSelect);
-
-    const tools: { label: string, value: Tool }[] = [];
-
-    function updateTools(track: Track | undefined = undefined) {
-        tools.length = 0;
-        tools.push(
-            { label: 'Standard', value: 'standard' },
-            { label: 'Narrow', value: 'narrow' },
-        );
-        if (track) {
-            tools.push(
-                { label: 'Delete', value: 'delete' },
-                { label: `Move Start`, value: 'start' },
-                { label: `Add Checkpoint`, value: 'add-checkpoint' },
-                { label: `Remove Checkpoint`, value: 'remove-checkpoint' },
-            );
-        }
-        toolSelect.innerHTML = '';
-        for (const tool of tools) {
-            const option = document.createElement('option');
-            option.style.setProperty('padding', '3px 10px');
-            option.textContent = tool.label;
-            if (tool.value === currentTool) {
-                option.setAttribute('selected', 'selected');
-            }
-            toolSelect.appendChild(option);
-        }
-    }
-    toolSelect.addEventListener('change', () => {
-        currentTool = tools[toolSelect.selectedIndex].value as Tool;
-    });
-
-    const trackSide = document.createElement('div');
-    trackSide.style.setProperty('position', 'relative');
-    trackSide.style.setProperty('flex', '1');
-    elem.appendChild(trackSide);
-
-    function update() {
-
-        editorUi.update();
-        const trackInfo = editorUi.trackInfo;
-        let track: Track | undefined;
-        if ('start' in trackInfo && 'startOffset' in trackInfo) {
-            track = new Track(trackInfo as TrackInfo);
-        }
-        updateTools(track);
-        const size = new Size();
-        if (track) {
-            size.copyFrom(track.size);
-        }
-        size.width = Math.max(size.width + 4, 8);
-        size.height = Math.max(size.height + 4, 8);
-
-        trackSide.innerHTML = '';
-
-        const tracksLayer = document.createElement('div');
-        tracksLayer.style.setProperty('position', `absolute`);
-        tracksLayer.style.setProperty('width', `${size.width * TILE_SIZE}px`);
-        tracksLayer.style.setProperty('height', `${size.height * TILE_SIZE}px`);
-        tracksLayer.style.setProperty('transform', `scale(${SCALE})`);
-        tracksLayer.style.setProperty('transform-origin', '0 0');
-        tracksLayer.style.setProperty('pointer-events', 'none');
-        trackSide.appendChild(tracksLayer);
-
-        const gridLayer = document.createElement('div');
-        gridLayer.style.setProperty('position', `absolute`);
-        trackSide.appendChild(gridLayer);
-
-        let mouseDownOffset: OffsetLike | undefined;
-        let mouseOverOffset: OffsetLike | undefined;
-        let mouseDownGridRect: HTMLElement | undefined;
-        
-        for (const offset of size.offsets()) {
-            const gridRect = document.createElement('div');
-            gridRect.style.setProperty('position', 'absolute');
-            gridRect.style.setProperty('left', `${TILE_SIZE * SCALE * offset.x}px`);
-            gridRect.style.setProperty('top', `${TILE_SIZE * SCALE * offset.y}px`);
-            gridRect.style.setProperty('width', `${TILE_SIZE * SCALE + 1}px`);
-            gridRect.style.setProperty('height', `${TILE_SIZE * SCALE + 1}px`);
-            gridRect.style.setProperty('border', `1px dashed ${GRID_COLOR}`);
-            gridRect.style.setProperty('box-sizing', 'border-box');
-            gridLayer.appendChild(gridRect);
-            gridRect.addEventListener('mouseenter', () => {
-                mouseOverOffset = offset;
-                if (mouseDownOffset !== undefined && !isExitValid(trackInfo, mouseDownOffset, offset)) {
-                    gridRect.style.setProperty('border-color', GRID_INVALID_COLOR);
-                } else {
-                    gridRect.style.setProperty('border-color', GRID_HOVER_COLOR);
-                }
-                gridRect.style.setProperty('z-index', '1');
-            });
-            gridRect.addEventListener('mouseleave', () => {
-                mouseOverOffset = undefined;
-                gridRect.style.setProperty('border-color', GRID_COLOR);
-                gridRect.style.removeProperty('z-index');
-            });
-            gridRect.addEventListener('mousedown', (event) => {
-                if (currentTool === 'remove-checkpoint') {
-                    removeCheckpoint(trackInfo, offset);
-                    update();
-                } else {
-                    mouseDownOffset = offset;
-                    mouseDownGridRect = gridRect;
-                    gridRect.style.setProperty('background-color', GRID_SELECT_COLOR);
-                }
-                event.preventDefault();
-            }, { capture: true });
-
-            if (track && offset.x < track.size.width && offset.y < track.size.height) {
-                const tile = track.getTile(offset.x, offset.y);
-                const svg = getTileSvg(document, track, tile);
-                if (svg) {
-                    svg.style.setProperty('position', 'absolute');
-                    svg.style.setProperty('left', `${TILE_SIZE * (offset.x - 0.5)}px`);
-                    svg.style.setProperty('top', `${TILE_SIZE * (offset.y - 0.5)}px`);
-                    tracksLayer.appendChild(svg);
-                }
-            }
-        }
-
-        gridLayer.addEventListener('mouseup', () => {
-            if (mouseDownOffset !== undefined && mouseOverOffset !== undefined && isExitValid(trackInfo, mouseDownOffset, mouseOverOffset)) {
-                if (currentTool === 'standard' || currentTool === 'narrow') {
-                    addTrack(trackInfo, mouseDownOffset, mouseOverOffset, currentTool);
-                } else if (currentTool === 'delete') {
-                    removeTrack(trackInfo, mouseDownOffset, mouseOverOffset);
-                } else if (currentTool === 'start') {
-                    setStart(trackInfo, mouseDownOffset, mouseOverOffset);
-                } else if (track && currentTool === 'add-checkpoint') {
-                    addCheckpoint(trackInfo, mouseDownOffset, mouseOverOffset, track.checkpoints.length);
-                }
-                update();
-            } else {
-                mouseDownGridRect?.style.removeProperty('background-color');
-            }
-            mouseDownOffset = undefined;
-            mouseDownGridRect = undefined;
-        });
-
-        if (track) {
-            const start = track.start;
-            const startOffset = start.tile.offset;
-            const startSvg = getCheckpointSvg(document, start, 'start');
-            startSvg.style.setProperty('position', 'absolute');
-            startSvg.style.setProperty('left', `${TILE_SIZE * (startOffset.x - 0.5)}px`);
-            startSvg.style.setProperty('top', `${TILE_SIZE * (startOffset.y - 0.5)}px`);
-            tracksLayer.appendChild(startSvg);
-
-            for (let index = 0; index < track.checkpoints.length; index++) {
-                const checkpoint = track.checkpoints[index];
-                const offset = checkpoint.tile.offset;
-                const finsishSameAsStart = index === track.checkpoints.length - 1 && offset.x === startOffset.x && offset.y === startOffset.y;
-                const status = index <= track.checkpoints.length - 1 ? 'next'
-                    : finsishSameAsStart ? 'next'
-                    : 'finish';
-                const svg = getCheckpointSvg(document, checkpoint, status, { showIndex: true});
-                svg.style.setProperty('position', 'absolute');
-                svg.style.setProperty('left', `${TILE_SIZE * (offset.x - 0.5)}px`);
-                svg.style.setProperty('top', `${TILE_SIZE * (offset.y - 0.5)}px`);
-                tracksLayer.appendChild(svg);
-            }
-        }
-    }
-    update();
 }

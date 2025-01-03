@@ -1,0 +1,246 @@
+{
+  "name": "Slick",
+  "material": "road",
+  "start": {
+    "offset": "(3,6)",
+    "direction": "W"
+  },
+  "tiles": {
+    "(2,6)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        },
+        "W": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(3,6)": {
+      "exits": {
+        "W": {
+          "trackWidth": "standard"
+        },
+        "E": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 3,
+        "direction": "W"
+      }
+    },
+    "(4,6)": {
+      "exits": {
+        "W": {
+          "trackWidth": "standard"
+        },
+        "N": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(4,5)": {
+      "exits": {
+        "S": {
+          "trackWidth": "standard"
+        },
+        "N": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(4,4)": {
+      "exits": {
+        "S": {
+          "trackWidth": "standard"
+        },
+        "W": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(3,4)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        },
+        "W": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 0,
+        "direction": "E"
+      }
+    },
+    "(2,4)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        },
+        "NW": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(1,3)": {
+      "exits": {
+        "SE": {
+          "trackWidth": "standard"
+        },
+        "NE": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(2,2)": {
+      "exits": {
+        "SW": {
+          "trackWidth": "standard"
+        },
+        "SE": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(3,3)": {
+      "exits": {
+        "NW": {
+          "trackWidth": "standard"
+        },
+        "E": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(4,3)": {
+      "exits": {
+        "W": {
+          "trackWidth": "standard"
+        },
+        "N": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(4,2)": {
+      "exits": {
+        "S": {
+          "trackWidth": "standard"
+        },
+        "NW": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(3,1)": {
+      "exits": {
+        "SE": {
+          "trackWidth": "standard"
+        },
+        "NW": {
+          "trackWidth": "standard"
+        }
+      },
+      "checkpoint": {
+        "index": 1,
+        "direction": "SE"
+      }
+    },
+    "(2,0)": {
+      "exits": {
+        "SE": {
+          "trackWidth": "standard"
+        },
+        "W": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(1,0)": {
+      "exits": {
+        "E": {
+          "trackWidth": "standard"
+        },
+        "S": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(1,1)": {
+      "exits": {
+        "N": {
+          "trackWidth": "standard"
+        },
+        "SW": {
+          "trackWidth": "narrow"
+        }
+      }
+    },
+    "(0,2)": {
+      "exits": {
+        "NE": {
+          "trackWidth": "narrow"
+        },
+        "S": {
+          "trackWidth": "narrow"
+        }
+      }
+    },
+    "(0,3)": {
+      "exits": {
+        "N": {
+          "trackWidth": "narrow"
+        },
+        "S": {
+          "trackWidth": "narrow"
+        }
+      }
+    },
+    "(0,4)": {
+      "exits": {
+        "N": {
+          "trackWidth": "narrow"
+        },
+        "S": {
+          "trackWidth": "narrow"
+        }
+      },
+      "checkpoint": {
+        "index": 2,
+        "direction": "N"
+      }
+    },
+    "(0,5)": {
+      "exits": {
+        "N": {
+          "trackWidth": "narrow"
+        },
+        "S": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(0,6)": {
+      "exits": {
+        "N": {
+          "trackWidth": "standard"
+        },
+        "E": {
+          "trackWidth": "standard"
+        }
+      }
+    },
+    "(1,6)": {
+      "exits": {
+        "W": {
+          "trackWidth": "standard"
+        },
+        "E": {
+          "trackWidth": "standard"
+        }
+      }
+    }
+  }
+}
