@@ -9,20 +9,20 @@
     "(1,3)": {
       "exits": {
         "E": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         },
         "W": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         }
       }
     },
     "(2,3)": {
       "exits": {
         "W": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         },
         "E": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         }
       },
       "checkpoint": {
@@ -33,7 +33,7 @@
     "(3,3)": {
       "exits": {
         "W": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         },
         "N": {
           "trackWidth": "standard"
@@ -174,37 +174,37 @@
           "trackWidth": "standard"
         },
         "S": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         }
       }
     },
     "(0,1)": {
       "exits": {
         "N": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         },
         "S": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         }
       }
     },
     "(0,2)": {
       "exits": {
         "N": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         },
         "S": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         }
       }
     },
     "(0,3)": {
       "exits": {
         "N": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         },
         "E": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         }
       }
     }

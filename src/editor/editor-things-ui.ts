@@ -291,5 +291,5 @@ export async function setupThingsUi(editorUi: EditorUi, elem: HTMLElement) {
             thingsLayer.appendChild(element);
         }
     }
-    update();
+    update(true);
 }

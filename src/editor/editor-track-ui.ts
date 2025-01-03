@@ -15,7 +15,7 @@ const GRID_HOVER_COLOR = 'rgba(242, 245, 42, 0.75)';
 const GRID_INVALID_COLOR = 'rgba(245, 42, 42, 0.75)';
 const GRID_SELECT_COLOR = 'rgba(242, 245, 42, 0.25)';
 
-type Tool = 'delete' | 'standard' | 'narrow' | 'start' | 'add-checkpoint' | 'remove-checkpoint';
+type Tool = 'delete' | 'standard' | 'narrow' | 'wide' | 'start' | 'add-checkpoint' | 'remove-checkpoint';
 
 export async function setupTrackUi(editorUi: EditorUi, elem: HTMLElement) {
     let currentTool: Tool = 'standard';
@@ -67,8 +67,9 @@ export async function setupTrackUi(editorUi: EditorUi, elem: HTMLElement) {
     function updateTools(track: Track | undefined = undefined) {
         const tools: SelectOption<Tool>[] = [];
         tools.push(
-            { label: 'Standard', key: 'standard' },
             { label: 'Narrow', key: 'narrow' },
+            { label: 'Standard', key: 'standard' },
+            { label: 'Wide', key: 'wide' },
         );
         if (track) {
             tools.push(
@@ -175,7 +176,7 @@ export async function setupTrackUi(editorUi: EditorUi, elem: HTMLElement) {
 
         gridLayer.addEventListener('mouseup', () => {
             if (mouseDownOffset !== undefined && mouseOverOffset !== undefined && isExitValid(trackInfo, mouseDownOffset, mouseOverOffset)) {
-                if (currentTool === 'standard' || currentTool === 'narrow') {
+                if (currentTool === 'standard' || currentTool === 'narrow' || currentTool === 'wide') {
                     addTrack(trackInfo, mouseDownOffset, mouseOverOffset, currentTool);
                 } else if (currentTool === 'delete') {
                     removeTrack(trackInfo, mouseDownOffset, mouseOverOffset);

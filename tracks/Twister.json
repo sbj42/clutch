@@ -50,7 +50,7 @@
           "trackWidth": "standard"
         },
         "W": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         },
         "SE": {
           "trackWidth": "standard"
@@ -60,23 +60,23 @@
     "(5,2)": {
       "exits": {
         "E": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         },
         "W": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         }
       }
     },
     "(4,2)": {
       "exits": {
         "E": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         },
         "S": {
           "trackWidth": "standard"
         },
         "W": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         }
       }
     },
@@ -131,7 +131,7 @@
     "(3,2)": {
       "exits": {
         "E": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         },
         "NW": {
           "trackWidth": "standard"

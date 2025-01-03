@@ -90,14 +90,14 @@
           "trackWidth": "standard"
         },
         "NE": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         }
       }
     },
     "(2,2)": {
       "exits": {
         "SW": {
-          "trackWidth": "standard"
+          "trackWidth": "wide"
         },
         "SE": {
           "trackWidth": "standard"
