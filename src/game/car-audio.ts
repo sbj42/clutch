@@ -12,8 +12,8 @@ const ENGINE_SOUNDSOURCE = new URL(
 export const MIN_RATE = 0.8;
 export const MAX_RATE = 2.3;
 
-export const BASE_VOLUME = 0.2;
-export const PLAYER_VOLUME_BOOST = 0.05;
+export const BASE_VOLUME = 0.4;
+export const PLAYER_VOLUME_BOOST = 0.1;
 export const DOPPLER_MAX_SPEED = 15;
 export const DOPPLER_EFFECT = 0.2;
 export const MAX_DISTANCE = TILE_SIZE * 3;
@@ -39,12 +39,33 @@ export class CarAudio {
         this._engine = new Howl({
             src: [ENGINE_SOUNDSOURCE.href],
             loop: true,
-            volume: 0.2,
+            volume: BASE_VOLUME,
         });
         this._engine.seek(2 * (car.index / raceUi.race.cars.length));
         this._delta = (Math.random() * 2 - 1) * 0.04;
         this._engine.rate(MIN_RATE + this._delta);
         this._engine.play();
+    }
+
+    static _testEngine = new Howl({
+        src: [ENGINE_SOUNDSOURCE.href],
+        loop: true,
+        volume: BASE_VOLUME,
+    });
+    static _testEngineTimer: any;
+
+    static testEngine(volume: number) {
+        if (CarAudio._testEngineTimer) {
+            clearTimeout(CarAudio._testEngineTimer);
+        } else {
+            CarAudio._testEngine.play();
+        }
+        console.info(volume);
+        CarAudio._testEngine.volume(volume);
+        CarAudio._testEngineTimer = setTimeout(() => {
+            CarAudio._testEngine.stop();
+            CarAudio._testEngineTimer = undefined;
+        }, 1000);
     }
 
     tick(sec: number) {

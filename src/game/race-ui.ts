@@ -1,18 +1,19 @@
-import { getTileSvg } from "../track/tile-render";
-import { Race } from "../race/race";
-import { Size } from "tiled-geometry";
-import { TILE_SIZE } from "../track/tile";
-import { CarUi } from "./car-ui";
-import type { CloudUi } from "./cloud-ui";
-import { filterInPlace } from "../util/array";
-import { CheckpointUi } from "./checkpoint-ui";
-import type { MarkUi } from "./mark-ui";
-import { Checkpoint } from "../track/checkpoint";
-import { ObstacleUi } from "./obstacle-ui";
-import { RaceAudio } from "./race-audio";
-import { timeToString } from "../util/time";
-import { getDecorationUi } from "./decoration-ui";
-import { makeLayer } from "../ui/ui";
+import { getTileSvg } from '../track/tile-render';
+import { Race } from '../race/race';
+import { Size } from 'tiled-geometry';
+import { TILE_SIZE } from '../track/tile';
+import { CarUi } from './car-ui';
+import type { CloudUi } from './cloud-ui';
+import { filterInPlace } from '../util/array';
+import { CheckpointUi } from './checkpoint-ui';
+import type { MarkUi } from './mark-ui';
+import { Checkpoint } from '../track/checkpoint';
+import { ObstacleUi } from './obstacle-ui';
+import { RaceAudio } from './race-audio';
+import { timeToString } from '../util/time';
+import { getDecorationUi } from './decoration-ui';
+import { makeLayer } from '../ui/ui';
+import { Options } from './options';
 
 export type RaceUiOptions = {
     wireframe?: boolean;
@@ -20,7 +21,8 @@ export type RaceUiOptions = {
 
 export class RaceUi {
     readonly race: Race;
-    readonly audio = new RaceAudio(this);
+    readonly audio: RaceAudio;
+    readonly gameOptions: Options;
 
     private readonly _wireframe: boolean;
 
@@ -47,9 +49,11 @@ export class RaceUi {
     private readonly _start: CheckpointUi;
     private readonly _checkpoints: CheckpointUi[] = [];
 
-    constructor(elem: HTMLElement, race: Race, options?: RaceUiOptions) {
+    constructor(elem: HTMLElement, race: Race, gameOptions: Options, raceUiOptions?: RaceUiOptions) {
         this.race = race;
-        this._wireframe = options?.wireframe ?? false;
+        this._wireframe = raceUiOptions?.wireframe ?? false;
+        this.gameOptions = gameOptions;
+        this.audio = new RaceAudio(this);
         const track = race.track;
         
         elem.innerHTML = '';
@@ -155,9 +159,7 @@ export class RaceUi {
             for (const cloud of this._clouds) {
                 cloud.tick(sec);
                 if (cloud.expired) {
-                    if (cloud.element.parentNode) {
-                        this._airLayer.removeChild(cloud.element);
-                    }
+                    cloud.element.remove();
                     expired ++;
                 }
             }
@@ -170,9 +172,7 @@ export class RaceUi {
             for (const mark of this._marks) {
                 mark.tick(sec);
                 if (mark.expired) {
-                    if (mark.element.parentNode) {
-                        this._markLayer.removeChild(mark.element);
-                    }
+                    mark.element.remove();
                     expired ++;
                 }
             }

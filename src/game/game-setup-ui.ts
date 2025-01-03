@@ -9,6 +9,8 @@ import { TRACKS } from "../track/tracks";
 import { makeButton, Select } from "../ui/ui";
 import { TrackInfo } from "../track/track-info";
 import { getDecorationUi } from "./decoration-ui";
+import { loadHighScores, MAX_HIGH_SCORES } from "./high-scores";
+import { timeToString } from "../util/time";
 
 export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
 
@@ -43,6 +45,17 @@ export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
     split.style.setProperty('flex', '1');
     elem.appendChild(split);
 
+    const buttons = document.createElement('div');
+    buttons.classList.add('row-layout');
+    buttons.classList.add('center');
+    buttons.classList.add('padded');
+    elem.appendChild(buttons);
+
+    const backButton = makeButton('BACK', 'green', () => {
+        gameUi.doTitle();
+    });
+    buttons.appendChild(backButton);
+
     const listSide = document.createElement('div');
     listSide.classList.add('column-layout');
     listSide.classList.add('padded');
@@ -57,6 +70,7 @@ export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
 
         track = TRACKS.find((track) => track.name === trackName);
         preview.innerHTML = '';
+        updateHighScores(track, difficulty, highScores);
         if (track) {
             trackPreview(preview, new Track(track));
         }
@@ -77,6 +91,7 @@ export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
 
     const difficultySelect = new Select<Difficulty>(difficulty, (value) => {
         difficulty = value;
+        updateHighScores(track, difficulty, highScores);
     });
     difficultySelect.setOptions([
         { label: 'EASY', key: 'easy' },
@@ -98,6 +113,18 @@ export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
 
     const preview = document.createElement('div');
     previewSide.appendChild(preview);
+
+    const highScoresSide = document.createElement('div');
+    highScoresSide.classList.add('column-layout');
+    highScoresSide.classList.add('padded');
+    split.appendChild(highScoresSide);
+
+    const highScoresLabel = document.createElement('div');
+    highScoresLabel.textContent = 'HIGH SCORES:';
+    highScoresSide.appendChild(highScoresLabel);
+
+    const highScores = document.createElement('div');
+    highScoresSide.appendChild(highScores);
 }
 
 function trackPreview(elem: HTMLElement, track: Track) {
@@ -131,5 +158,18 @@ function trackPreview(elem: HTMLElement, track: Track) {
 
     for (const decoration of track.decorations) {
         inner.appendChild(getDecorationUi(decoration));
+    }
+}
+
+function updateHighScores(track: TrackInfo | undefined, difficulty: Difficulty, highScores: HTMLElement) {
+    highScores.innerHTML = '';
+    const scores = loadHighScores();
+    const trackScores = scores[track?.name ?? ''] ?? {};
+    const difficultyScores = trackScores[difficulty] ?? [];
+    for (let index = 0; index < MAX_HIGH_SCORES; index++) {
+        const score = difficultyScores[index];
+        const scoreText = document.createElement('div');
+        scoreText.textContent = `${index + 1}. ${timeToString(score?.time)}`;
+        highScores.appendChild(scoreText);
     }
 }

@@ -54,7 +54,7 @@ export async function setupThingsUi(editorUi: EditorUi, elem: HTMLElement) {
     const toolSelect = new Select<Tool>(currentTool, (tool) => {
         currentTool = tool;
         updateToolControls();
-        addImage.parentElement?.removeChild(addImage);
+        addImage.remove();
     });
     controlsSide.appendChild(toolSelect.element);
     toolSelect.element.focus();

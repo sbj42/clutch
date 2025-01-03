@@ -6,8 +6,10 @@ import { setupUi } from "./game-setup-ui";
 import { pauseUi } from "./game-pause-ui";
 import { resultsUi } from "./game-results-ui";
 import { makeLayer } from "../ui/ui";
+import { optionsUi } from "./game-options-ui";
+import { loadOptions } from "./options";
 
-export type GameState = 'title' | 'setup' | 'race';
+export type GameState = 'title' | 'options' | 'setup' | 'race';
 
 const NUM_LAPS = 3;
 
@@ -23,9 +25,8 @@ export class GameUi {
     private _state: GameState = 'title';
     
     private _titleLayer = makeLayer('game-title');
-    
+    private _optionsLayer = makeLayer('game-options');
     private _setupLayer = makeLayer('game-setup');
-    
     private _raceLayer = makeLayer('game-race');
     
     private _paused = false;
@@ -56,17 +57,24 @@ export class GameUi {
     doTitle() {
         this._state = 'title';
         this._stopRace();
-        this._titleLayer.innerHTML = '';
         this._elem.innerHTML = '';
         this._elem.appendChild(this._titleLayer);
 
         titleUi(this, this._titleLayer);
     }
 
+    doOptions() {
+        this._state = 'options';
+        this._stopRace();
+        this._elem.innerHTML = '';
+        this._elem.appendChild(this._optionsLayer);
+
+        optionsUi(this, this._optionsLayer);
+    }
+
     doSetup() {
         this._state = 'setup';
         this._stopRace();
-        this._setupLayer.innerHTML = '';
         this._elem.innerHTML = '';
         this._elem.appendChild(this._setupLayer);
 
@@ -93,7 +101,7 @@ export class GameUi {
         this._paused = pause;
         this.raceUi?.audio.pause(pause);
         if (!this._paused) {
-            this._pauseLayer.parentNode?.removeChild(this._pauseLayer);
+            this._pauseLayer.remove();
             return;
         }
         this._pauseLayer.innerHTML = '';
@@ -115,7 +123,7 @@ export class GameUi {
 
     private _onKeydown(event: KeyboardEvent) {
         if (event.key === 'Escape') {
-            if (this._state === 'setup') {
+            if (this._state === 'setup' || this._state === 'options') {
                 this.doTitle();
             } else if (this._state === 'race') {
                 if (this.raceUi?.race.state !== 'finished') {
@@ -133,7 +141,7 @@ export class GameUi {
     }
 
     private _raceLoop(race: Race) {
-        const raceUi = new RaceUi(this._raceLayer, race, { wireframe: this._wireframe });
+        const raceUi = new RaceUi(this._raceLayer, race, loadOptions(), { wireframe: this._wireframe });
         this.raceUi = raceUi
         const tick = (sec: number) => {
             if (this._paused) {

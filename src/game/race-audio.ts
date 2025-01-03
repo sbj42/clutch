@@ -1,5 +1,6 @@
-import type { RaceUi } from "./race-ui";
-import { CarAudio } from "./car-audio";
+import type { RaceUi } from './race-ui';
+import { CarAudio } from './car-audio';
+import { Howler } from 'howler';
 
 export class RaceAudio {
     readonly raceUi: RaceUi;
@@ -8,6 +9,7 @@ export class RaceAudio {
 
     constructor(raceUi: RaceUi) {
         this.raceUi = raceUi;
+        Howler.volume(raceUi.gameOptions.engineVolume);
     }
 
     addCar(carAudio: CarAudio) {

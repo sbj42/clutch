@@ -18,17 +18,21 @@ export async function titleUi(gameUi: GameUi, elem: HTMLElement) {
     title.style.setProperty('font-size', '100px');
     elem.appendChild(title);
 
-    const optionsDiv = document.createElement('div');
-    optionsDiv.style.setProperty('visibility', 'hidden');
-    optionsDiv.style.setProperty('margin-bottom', '20px');
-    optionsDiv.classList.add('container');
-    optionsDiv.classList.add('row-layout');
-    optionsDiv.classList.add('padded');
+    const buttonsDiv = document.createElement('div');
+    buttonsDiv.style.setProperty('visibility', 'hidden');
+    buttonsDiv.style.setProperty('margin-bottom', '20px');
+    buttonsDiv.classList.add('container');
+    buttonsDiv.classList.add('row-layout');
+    buttonsDiv.classList.add('padded');
     const playButton = makeButton('PLAY', 'green', () => {
         gameUi.doSetup();
     });
-    optionsDiv.appendChild(playButton);
-    elem.appendChild(optionsDiv);
+    buttonsDiv.appendChild(playButton);
+    const optionsButton = makeButton('OPTIONS', 'yellow', () => {
+        gameUi.doOptions();
+    });
+    buttonsDiv.appendChild(optionsButton);
+    elem.appendChild(buttonsDiv);
     
     await title.animate([
         { letterSpacing: '6em', paddingRight: '6000px' },
@@ -37,6 +41,6 @@ export async function titleUi(gameUi: GameUi, elem: HTMLElement) {
 
     await delay(0.25);
 
-    optionsDiv.style.setProperty('visibility', 'visible');
+    buttonsDiv.style.setProperty('visibility', 'visible');
     playButton.focus();
 }

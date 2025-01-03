@@ -1,7 +1,7 @@
 import { makeButton } from "../ui/ui";
 import { timeToString } from "../util/time";
 import { GameUi } from "./game-ui";
-import { loadHighScores, saveHighScores } from "./high-scores";
+import { loadHighScores, MAX_HIGH_SCORES, saveHighScores } from "./high-scores";
 
 function ordinalToString(place: number) {
     switch (place) {
@@ -11,8 +11,6 @@ function ordinalToString(place: number) {
         default: return `${place}th`;
     }
 }
-
-const MAX_HIGH_SCORES = 5;
 
 export async function resultsUi(gameUi: GameUi, elem: HTMLElement) {
     const race = gameUi.raceUi?.race;

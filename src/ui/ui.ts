@@ -62,7 +62,7 @@ export function makeLayer(id: string) {
     return ret;
 }
 
-export function makeButton(text: string, className: 'green' | 'yellow' | 'red', callback: () => void) {
+export function makeButton(text: string, className: 'green' | 'yellow' | 'red', onClick: () => void) {
     const button = document.createElement('button');
     button.classList.add('button');
     button.classList.add(className);
@@ -76,7 +76,17 @@ export function makeButton(text: string, className: 'green' | 'yellow' | 'red', 
         button.style.setProperty('filter', 'brightness(1)');
     });
     button.addEventListener('click', () => {
-        callback();
+        onClick();
     });
     return button;
+}
+
+export function makeCheckbox(checked: boolean, onChange: (checked: boolean) => void) {
+    const ret = document.createElement('input');
+    ret.type = 'checkbox';
+    ret.checked = checked;
+    ret.addEventListener('change', () => {
+        onChange(ret.checked);
+    });
+    return ret;
 }

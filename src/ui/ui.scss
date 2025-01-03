@@ -48,6 +48,11 @@ a, input, select, button {
     cursor: pointer;
 }
 
+input[type=checkbox] {
+    transform: scale(1.5);
+    margin-right: 15px;
+}
+
 select {
     overflow: auto;
 }

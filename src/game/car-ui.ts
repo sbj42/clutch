@@ -76,75 +76,79 @@ export class CarUi {
         this.audio.tick(sec);
         const body = this.car.body;
         const size = getCarSize(this.car.type);
-        this._exhaustTime -= sec;
-        if (this._exhaustTime < 0) {
-            this._exhaustTime = EXHAUST_TICK;
-            const exhaustChance = this.car.idle ? EXHAUST_CHANCE_IDLE
-                : this.car.drift ? EXHAUST_CHANCE_DRIFT
-                : this.car.burnout ? EXHAUST_CHANCE_BURNOUT
-                : EXHAUST_CHANCE_NORMAL;
-            if (Math.random() <= exhaustChance) {
-                VEC_POSITION.x = -size.width * 0.4;
-                VEC_POSITION.y = 0;
-                rotateInPlace(VEC_POSITION, body.angle);
-                const x = VEC_POSITION.x + body.position.x;
-                const y = VEC_POSITION.y + body.position.y;
-                VEC_VELOCITY.x = EXHAUST_VELOCITY * (-1.3 + 0.6 * Math.random());
-                VEC_VELOCITY.y = 0;
-                rotateInPlace(VEC_VELOCITY, body.angle);
-                const dx = VEC_VELOCITY.x + body.velocity.x * 15;
-                const dy = VEC_VELOCITY.y + body.velocity.y * 15;
-                const exhaust = new CloudUi(x, y, dx, dy, EXHAUST_COLOR, EXHAUST_DURATION);
-                this.raceUi.addCloud(exhaust);
+        if (this.raceUi.gameOptions.exhaust) {
+            this._exhaustTime -= sec;
+            if (this._exhaustTime < 0) {
+                this._exhaustTime = EXHAUST_TICK;
+                const exhaustChance = this.car.idle ? EXHAUST_CHANCE_IDLE
+                    : this.car.drift ? EXHAUST_CHANCE_DRIFT
+                    : this.car.burnout ? EXHAUST_CHANCE_BURNOUT
+                    : EXHAUST_CHANCE_NORMAL;
+                if (Math.random() <= exhaustChance) {
+                    VEC_POSITION.x = -size.width * 0.4;
+                    VEC_POSITION.y = 0;
+                    rotateInPlace(VEC_POSITION, body.angle);
+                    const x = VEC_POSITION.x + body.position.x;
+                    const y = VEC_POSITION.y + body.position.y;
+                    VEC_VELOCITY.x = EXHAUST_VELOCITY * (-1.3 + 0.6 * Math.random());
+                    VEC_VELOCITY.y = 0;
+                    rotateInPlace(VEC_VELOCITY, body.angle);
+                    const dx = VEC_VELOCITY.x + body.velocity.x * 15;
+                    const dy = VEC_VELOCITY.y + body.velocity.y * 15;
+                    const exhaust = new CloudUi(x, y, dx, dy, EXHAUST_COLOR, EXHAUST_DURATION);
+                    this.raceUi.addCloud(exhaust);
+                }
             }
         }
-        if (this.car.burnout || this.car.drift) {
-            // back-left tire
-            {
-                VEC_POSITION.x = -size.width * 0.4;
-                VEC_POSITION.y = -size.height * 0.35;
-                rotateInPlace(VEC_POSITION, body.angle);
-                const x = body.position.x + VEC_POSITION.x;
-                const y = body.position.y + VEC_POSITION.y;
-                this._skidBackLeft = this._getOrCreateMark(this._skidBackLeft, 'rgba(0, 0, 0, 0.25)', 3);
-                this._skidBackLeft.add(x, y);
+        if (this.raceUi.gameOptions.skidMarks) {
+            if (this.car.burnout || this.car.drift) {
+                // back-left tire
+                {
+                    VEC_POSITION.x = -size.width * 0.4;
+                    VEC_POSITION.y = -size.height * 0.35;
+                    rotateInPlace(VEC_POSITION, body.angle);
+                    const x = body.position.x + VEC_POSITION.x;
+                    const y = body.position.y + VEC_POSITION.y;
+                    this._skidBackLeft = this._getOrCreateMark(this._skidBackLeft, 'rgba(0, 0, 0, 0.25)', 3);
+                    this._skidBackLeft.add(x, y);
+                }
+                // back-right tire
+                {
+                    VEC_POSITION.x = -size.width * 0.4;
+                    VEC_POSITION.y = size.height * 0.35;
+                    rotateInPlace(VEC_POSITION, body.angle);
+                    const x = body.position.x + VEC_POSITION.x;
+                    const y = body.position.y + VEC_POSITION.y;
+                    this._skidBackRight = this._getOrCreateMark(this._skidBackRight, 'rgba(0, 0, 0, 0.25)', 3);
+                    this._skidBackRight.add(x, y);
+                }
+            } else {
+                this._skidBackLeft = this._skidBackRight = undefined;
             }
-            // back-right tire
-            {
-                VEC_POSITION.x = -size.width * 0.4;
-                VEC_POSITION.y = size.height * 0.35;
-                rotateInPlace(VEC_POSITION, body.angle);
-                const x = body.position.x + VEC_POSITION.x;
-                const y = body.position.y + VEC_POSITION.y;
-                this._skidBackRight = this._getOrCreateMark(this._skidBackRight, 'rgba(0, 0, 0, 0.25)', 3);
-                this._skidBackRight.add(x, y);
+            if (this.car.drift) {
+                // front-left tire
+                {
+                    VEC_POSITION.x = size.width * 0.4;
+                    VEC_POSITION.y = -size.height * 0.35;
+                    rotateInPlace(VEC_POSITION, body.angle);
+                    const x = body.position.x + VEC_POSITION.x;
+                    const y = body.position.y + VEC_POSITION.y;
+                    this._skidFrontLeft = this._getOrCreateMark(this._skidFrontLeft, 'rgba(0, 0, 0, 0.25)', 3);
+                    this._skidFrontLeft.add(x, y);
+                }
+                // front-right tire
+                {
+                    VEC_POSITION.x = size.width * 0.4;
+                    VEC_POSITION.y = size.height * 0.35;
+                    rotateInPlace(VEC_POSITION, body.angle);
+                    const x = body.position.x + VEC_POSITION.x;
+                    const y = body.position.y + VEC_POSITION.y;
+                    this._skidFrontRight = this._getOrCreateMark(this._skidFrontRight, 'rgba(0, 0, 0, 0.25)', 3);
+                    this._skidFrontRight.add(x, y);
+                }
+            } else {
+                this._skidFrontLeft = this._skidFrontRight = undefined;
             }
-        } else {
-            this._skidBackLeft = this._skidBackRight = undefined;
-        }
-        if (this.car.drift) {
-            // front-left tire
-            {
-                VEC_POSITION.x = size.width * 0.4;
-                VEC_POSITION.y = -size.height * 0.35;
-                rotateInPlace(VEC_POSITION, body.angle);
-                const x = body.position.x + VEC_POSITION.x;
-                const y = body.position.y + VEC_POSITION.y;
-                this._skidFrontLeft = this._getOrCreateMark(this._skidFrontLeft, 'rgba(0, 0, 0, 0.25)', 3);
-                this._skidFrontLeft.add(x, y);
-            }
-            // front-right tire
-            {
-                VEC_POSITION.x = size.width * 0.4;
-                VEC_POSITION.y = size.height * 0.35;
-                rotateInPlace(VEC_POSITION, body.angle);
-                const x = body.position.x + VEC_POSITION.x;
-                const y = body.position.y + VEC_POSITION.y;
-                this._skidFrontRight = this._getOrCreateMark(this._skidFrontRight, 'rgba(0, 0, 0, 0.25)', 3);
-                this._skidFrontRight.add(x, y);
-            }
-        } else {
-            this._skidFrontLeft = this._skidFrontRight = undefined;
         }
     }
 
