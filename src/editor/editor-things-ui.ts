@@ -13,6 +13,7 @@ import { DecorationType, getDecorationCenter, getDecorationImage, getDecorationS
 import { DecorationInfo } from "../track/decoration";
 import * as pressed from 'pressed';
 import { Select } from "../ui/ui";
+import { fixAngle } from "../geom/angle";
 
 type Tool = 'obstacle' | 'decoration' | 'remove';
 
@@ -93,6 +94,8 @@ export async function setupThingsUi(editorUi: EditorUi, elem: HTMLElement) {
         { label: 'Palm Tree 3', key: 'palmtree3' },
         { label: 'Barrier 1', key: 'barrier1' },
         { label: 'Barrier 2', key: 'barrier2' },
+        { label: 'Chevrons 1', key: 'chevrons1' },
+        { label: 'Arrow 1', key: 'arrow1' },
     ], 12);
 
     function updateToolControls() {
@@ -147,6 +150,7 @@ export async function setupThingsUi(editorUi: EditorUi, elem: HTMLElement) {
                 location: { x, y },
                 angle: currentAngle,
             });
+            editorUi.update();
             update();
         } else if (currentTool === 'decoration') {
             const x = event.offsetX / TILE_SIZE;
@@ -157,6 +161,7 @@ export async function setupThingsUi(editorUi: EditorUi, elem: HTMLElement) {
                 location: { x, y },
                 angle: currentAngle,
             });
+            editorUi.update();
             update();
         }
     });
@@ -173,11 +178,11 @@ export async function setupThingsUi(editorUi: EditorUi, elem: HTMLElement) {
             lastTime = time;
             const input = getInputDirection();
             trackSide.scrollBy(input.x * SCROLL_SPEED * sec, input.y * SCROLL_SPEED * sec);
-            if (pressed('Q')) {
-                currentAngle -= Math.PI / 2 * sec;
+            if (pressed('Q') && !pressed('Shift')) {
+                currentAngle = fixAngle(currentAngle - Math.PI / 2 * sec);
                 addImage.style.setProperty('transform', `rotate(${currentAngle}rad)`);
-            } else if (pressed('E')) {
-                currentAngle += Math.PI / 2 * sec;
+            } else if (pressed('E') && !pressed('Shift')) {
+                currentAngle = fixAngle(currentAngle + Math.PI / 2 * sec);
                 addImage.style.setProperty('transform', `rotate(${currentAngle}rad)`);
             }
         }
@@ -185,13 +190,24 @@ export async function setupThingsUi(editorUi: EditorUi, elem: HTMLElement) {
     }
     requestAnimationFrame(rafCallback);
 
+    const onKeydown = (event) => {
+        if (event.shiftKey && event.key === 'Q') {
+            currentAngle = fixAngle(Math.PI / 8 * Math.ceil(currentAngle / (Math.PI / 8)) - Math.PI / 8);
+            addImage.style.setProperty('transform', `rotate(${currentAngle}rad)`);
+        } else if (event.shiftKey && event.key === 'E') {
+            currentAngle = fixAngle(Math.PI / 8 * Math.floor(currentAngle / (Math.PI / 8)) + Math.PI / 8);
+            addImage.style.setProperty('transform', `rotate(${currentAngle}rad)`);
+        }
+    };
+    controlsSide.addEventListener('keydown', onKeydown);
+    trackSide.addEventListener('keydown', onKeydown);
+
     const addImage = document.createElement('div');
     addImage.style.setProperty('position', 'absolute');
     addImage.style.setProperty('pointer-events', 'none');
 
     function update(first = false) {
 
-        editorUi.update();
         const trackInfo = editorUi.trackInfo;
         const track = new Track(trackInfo as TrackInfo);
         thingsLayer.style.setProperty('width', `${track.size.width * TILE_SIZE}px`);
@@ -249,6 +265,7 @@ export async function setupThingsUi(editorUi: EditorUi, elem: HTMLElement) {
             element.addEventListener('click', () => {
                 if (currentTool === 'remove') {
                     removeObstacle(trackInfo, obstacle);
+                    editorUi.update();
                     update();
                 }
             });
@@ -267,11 +284,12 @@ export async function setupThingsUi(editorUi: EditorUi, elem: HTMLElement) {
             element.addEventListener('click', () => {
                 if (currentTool === 'remove') {
                     removeDecoration(trackInfo, decoration);
+                    editorUi.update();
                     update();
                 }
             });
             thingsLayer.appendChild(element);
         }
     }
-    update(true);
+    update();
 }

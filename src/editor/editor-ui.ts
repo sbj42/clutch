@@ -161,11 +161,15 @@ export class EditorUi {
     private async _onFileChange() {
         if (this._fileInput.files) {
             const file = this._fileInput.files[0];
+            if (!file) {
+                return;
+            }
             const text = await file.text();
             const trackInfo = JSON.parse(text);
             this._trackInfo = trackInfo;
-            this.update();
-            setupTrackUi(this, this._trackLayer);
+            this._updateModeSelect();
+            this._changed = false;
+            this.doTrack();
         }
     }
 

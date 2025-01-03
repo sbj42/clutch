@@ -11,6 +11,7 @@ export function makeTextField(value: string, placeholder: string, onChange: (val
     ret.setAttribute('placeholder', placeholder);
     ret.setAttribute('value', value);
     ret.setAttribute('size', '10');
+    ret.setAttribute('spellcheck', 'false');
     ret.addEventListener('change', () => {
         onChange(ret.value);
     });

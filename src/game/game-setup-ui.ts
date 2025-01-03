@@ -8,6 +8,7 @@ import { Difficulty } from "../race/race";
 import { TRACKS } from "../track/tracks";
 import { makeButton, Select } from "../ui/ui";
 import { TrackInfo } from "../track/track-info";
+import { getDecorationUi } from "./decoration-ui";
 
 export async function setupUi(gameUi: GameUi, elem: HTMLElement) {
 
@@ -127,4 +128,8 @@ function trackPreview(elem: HTMLElement, track: Track) {
     startSvg.style.setProperty('left', `${TILE_SIZE * (startOffset.x - 0.5)}px`);
     startSvg.style.setProperty('top', `${TILE_SIZE * (startOffset.y - 0.5)}px`);
     inner.appendChild(startSvg);
+
+    for (const decoration of track.decorations) {
+        inner.appendChild(getDecorationUi(decoration));
+    }
 }
